@@ -1,0 +1,455 @@
+=====================================================================
+                         ARM-Mプロセッサ依存部
+                                  Last Modified: 2015 Jan 7 01:27:34
+=====================================================================
+
+
+(1) 対応しているターゲットシステムの種類・構成
+
+ARM-M依存部は，ARMVx-Mアーキテクチャをターゲットとしている．ARMVx-Mは，
+ARMとは異なり，ARM命令を実行できないため，ARM依存部と分けている．
+
+
+(2) 使用する開発環境と動作検証した条件（バージョン，オプション等）
+
+カーネルはGCCを用いてコンパイルする．動作確認したバージョンは各ターゲ
+ット依存部のドキュメントに記載する．
+
+
+(3) ターゲット定義事項の規定
+
+(3-1) データ型に関する規定
+
+データ型は arch/gcc/tool_stddef.h で定義されている内容で，float型と
+double型は，それぞれIEEE754準拠の単精度浮動小数点数と倍精度浮動小数点
+数である．
+
+(3-2) 割込み処理に関する規定
+
+○割込みハンドラ番号と割込み番号の割当て，両者の対応
+
+割込みハンドラ番号と割込み番号は，例外発生時にIPSRにセットされる例外番
+号を用いる．SYSTICKは15番で，外部割込みは16番からの番号が割り付けられ
+ている．
+
+○割込み優先度の段階数とTMIN_INTPRIの値
+
+割込み優先度の段階数は，SoC毎にハードウェア的にサポートする割込み優先
+度ビット幅が異なるので，ターゲット依存部毎に異なる．ターゲット依存部で
+は，割込み優先度のビット幅（TBITW_IPRI）とその割込み優先度中のサブ優先
+度のビット幅（TBITW_SUBPRI）を定義する．
+
+各ビット幅の値とCFG_INTで使用可能な割込み優先度の範囲は次の通りである．
+
+   -(2^(TBIW_IPRI)) + (2^TBITW_SUBIPRI) 〜 -1
+
+例えば優先度のビット幅(TBITW_IPRI)が8bit，サブ優先度のビット幅
+(TBITW_SUBIPRI) が1bitの場合は，-254 〜 -1 の範囲である．
+
+優先度のビット幅(TBITW_IPRI)が3bit，サブ優先度のビット幅(TBITW_SUBIPRI) 
+が0bitの場合は，-8 〜 -1 の範囲である．
+
+最大優先度(3bitの例では-8)は，内部優先度としては"0x00"となる．この優先
+度はCPUロックで用いるBASEPRIレジスタではマスクできないため，カーネル管
+理内の割込みの最高優先度（TMIN_INTPRI）は，最大値より1つ優先度が低い値
+以下の値を指定する．
+
+この範囲で，カーネル管理内の割込みの最高優先度（TMIN_INTPRI）をターゲ
+ット依存部で設定する．
+
+○dis_intとena_intのサポートの有無，その制限事項
+
+dis_intとena_intをサポートする．制限事項は特にない．
+
+○CFG_INTの制限事項と拡張（ターゲット定義で使用できる割込み属性）
+
+CFG_INTの制限事項はなく，ターゲット定義で使用可能な割込み属性は特にな
+い．
+
+○カーネル管理外の割込み
+
+カーネル管理外の割込みをサポートする．指定方法は，割込み優先度の段階数
+で指定した，サポートする割込み優先度の最高値（最小値）より，
+TMIN_INTPRIの値を大きく（優先度を低く）設定すると，TMIN_INTPRIより値が
+小い（高優先度）な割込み優先度を設定した割込みを割込み優先度として扱う．
+
+カーネル管理外の割込みはOS実行中も禁止になることはなく（厳密には割込み
+の出口でごく短い区間禁止される），割込み発生時は，カーネルのコードを経
+由せずに呼び出される．
+
+カーネル管理外の割込みに対する，DEF_INH,CFG_INTはサポートする．
+
+(3-3) CPU例外処理に関する規定
+
+○CPU例外ハンドラ番号
+
+CPU例外ハンドラ番号としては，例外発生時にIPSRにセットされる，例外番号
+を用いる．各例外の例外番号は以下の通りである．
+
+        例外              例外番号
+  Reset                      1
+  Non-makable Interrupt      2
+  Hard Fault                 3
+  Memory Management          4
+  Bus Fault                  5
+  Usage Fault                6
+  SVCall                    11
+  Debug Monitor             12
+  PendSV                    14
+
+なお，Resetと，SVCallについては，カーネルが使用するため，ユーザーは使
+用することができない．
+
+ARM-MアーキテクチャではCPU例外に優先度を設定することが可能である．
+ARM-M依存部では，全てのCPU例外の優先度をCPUロックではマスクできないマ
+スク出来ない値（内部優先度0）に初期化している．
+
+(3-4) CPUロック・割込みロック
+
+CPUロックは，basepriをTMIN_INTPRIの優先度の割込みを禁止する値に設定す
+る．割込みロックは，FAULTMASKを'1'に設定することで実現している．
+
+(3-5) 性能評価用システム時刻の参照に関する規定
+
+get_utmをサポートする．精度に関しては，ターゲット毎に異なる．
+
+(3-6) スタートアップルーチンでの初期化内容
+
+スタートアップルーチンは，Threadモードで呼び出されることを前提としてい
+る．実行後，割込みロック状態（FAULTMASKをセット）とする．割込みロック
+状態は，カーネルの初期化終了時に許可する．スタートアップルーチンで，
+MSPをアクティブなスタックとし，MSPの内容を初期化するためには，INIT_MSP
+をターゲット依存部で定義する．
+
+(3-7) ベクタテーブルオフセットの初期化
+
+プロセッサ依存の初期化処理で，Vector Table Offset Register をターゲッ
+ト依存部の初期化ルーチンで設定する．なお，ベクターテーブルは，.vector
+のセクション属性が付加されているため，リンカスクリプトでこのセクション
+を指定して配置する．
+
+(4) ターゲット依存部での設定項目
+
+ターゲット依存部では以下のマクロを定義する必要がある．
+
+   ・TMAX_INTNO     : 割込み番号の最大値(通常の割込み番号 + 15)
+   ・TBITW_IPRI     : 割込み優先度のビット幅
+   ・TBITW_SUBIPRI  : 割込み優先度のビット幅中のサブ優先度のビット幅
+   ・TMIN_INTPRI    : 割込み優先度の最小値（最高値）
+   ・TIC_NUME       : タイムティックの周期の分子
+   ・TIC_DENO       : タイムティックの周期の分母
+   ・TIMER_CLOCK    : タイマ値の内部表現とミリ秒単位との変換
+   ・INTPRI_TIMER   : タイマ割込み割込み優先度
+   ・INTATR_TIMER   : タイマ割込みの割込み属性
+   ・INIT_MSP       : スタートアップルーチンでMSPを初期化する場合は定義
+   ・DEFAULT_ISTKSZ : スタックサイズ（8byte単位で指定）
+   ・SIL_DLY_TIM1   : 微少時間待ちのための定義
+   ・SIL_DLY_TIM2   : 微少時間待ちのための定義
+
+(5) ディレクトリ構成・ファイル構成
+  ./arch/arm_m_gcc/common
+    ./Makefile.core
+    ./arm_m.h
+    ./core_asm.inc
+    ./core_cfg1_out.h
+    ./core_def.csv
+    ./core_insn.h
+    ./core_kernel.h
+    ./core_kernel_impl.c
+    ./core_kernel_impl.h
+    ./core_rename.def
+    ./core_rename.h
+    ./core_sil.h
+    ./core_stddef.h
+    ./core_support.S
+    ./core_test.h
+    ./core_unrename.h
+    ./core_user.txt
+    ./start.S
+    ./core_kernel.trb
+    ./core_check.trb
+    ./core_offset.trb
+
+(5-1) 不要なファイル
+
+以下のファイルは，ASP3.0.0では不要なファイルであるが，参考の
+ために残している．
+不要であれば削除しても構わない．
+
+  ./arch/arm_m_gcc/common
+    ./core.tf
+    ./core_check.tf
+    ./core_offset.tf
+
+(6)ARMCC共有コードの記述方法
+
+ARMCCと共有するコードは，次のルールに従ってコードを記述する必要がある．
+
+1.メモリバリア命令(Asm("":::"memory"))のマクロ化
+
+ターゲット依存部 ポーティングガイドの(1-6-2)(c)には，次のように記述さ
+れている．
+
+-----
+(c) クリティカルセクションの出入処理の本質的な部分が，マクロやインライ
+	ン関数呼出しで実現している場合には，クリティカルセクションに入る処
+	理の最後と出る処理の先頭に，Asm("":::"memory")という記述を入れる．
+-----
+
+メモリバリア命令(Asm("":::"memory"))は，ARMCCと互換性がないため，この
+記述をする箇所は，次のマクロで記述すると，コンパイル時に適切なメモリバ
+リア命令に置き換えられる．
+
+  ARM_MEMORY_CHANGED
+
+2.インクルード方法
+
+ターゲット依存部 ポーティングガイドの1.5には，次のように記述されている．
+
+-----
+その他のヘッダファイルは，「#include "..."」によりインクルードする．ヘッ
+ダファイルが，カレントディレクトリやインクルードするファイルと同じディ
+レクトリ以外のディレクトリに置かれている場合には，次のようにパス指定を
+行う．
+-----
+
+GCC依存部とARMCC依存部でヘッダファイルを共有できない場合には，それぞれ
+で同じ名前のファイルを持つ．そして，コンパイルオプションでインクルード
+すべきファイルを先に指定している．そのため，ARMCCと共有するファイルで
+これらのファイルをインクルードする場合には，「#include "..."」ではなく，
+「#include <...>」で記述し，相対パスではなくファイル名のみを記載するこ
+と．
+
+3.アセンブラディレクティブ
+
+GCCとARMCCのアセンブラディレクティブは互換性がない．そのため，ARMCCと
+共有するファイルは次に示すマクロディレクティブで記述すること．
+
+マクロディレクティブ     GCCディレクティブ
+ ASECTION(name)          .section name,"a"
+ ATEXT                   .text
+ AGLOBAL(name)           .global name
+ AALIGN(x)               .align x
+ ALONG                   .long
+ ALABEL(label)           label:
+ AOR                       |
+ ATHUMB(name)            __athumb name
+
+
+(7)ARMCC共有コードの記述方法
+
+○アイドル処理
+
+実行するべきタスクがない場合は，ディスパッチャーで割込みを許可して，割
+込みを待つ（dispatcher_2）．ARM-M依存部のコードでは，次のようになって
+いる．
+
+       割込みを許可
+       nop
+       割り込み禁止
+
+ターゲット依存で，上記の処理の代わりに，省電力モード等に移行する処理を
+記述したい場合には，ターゲット依存部で，TOPPERS_CUSTOM_IDLEを定義し，
+代わりに実行した処理を toppers_asm_custom_idle というアセンブラマクロ
+として記述する．
+
+なお，toppers_asm_custom_idle の記述にあたっては，次のレジスタは
+oppers_asm_custom_idleの前後で使用するため，oppers_asm_custom_idle 内
+で使用する場合は，前後で保存復帰すること．これらのレジスタは Calee 
+saved レジスタであるため， oppers_asm_custom_idle として関数呼び出しを
+した場合は，呼び出した関数で自動的に保存復帰されるため，アセンブラレベ
+ルでの保存復帰は必要ない．
+
+レジスタ : 内容
+r4      : '0'
+r5      : 'IIPM_LOCK'
+r6      : reqflgのアドレス
+r7      : lock_flgのアドレス
+sp      : 非タスクコンテキスト用のスタックの先頭アドレス(msp)
+
+アセンブラマクロはC言語記述中に展開するとエラーとなる．core_support.S で
+は，TOPPERS_ASM_MACRO というマクロを定義しているため，ターゲット依存部
+で toppers_asm_custom_idle アセンブラマクロを定義する際には，
+TOPPERS_ASM_MACRO を条件コンパイルの条件として用いること．
+
+
+(8) バージョン履歴
+
+2015/01/07
+・ASP3カーネル対応
+
+2012/02/29
+・Makefile.core
+  ・CDEFSにTOPPERS_LABEL_ASMを指定していたが，ARM用のgccではアセンブラ
+    のシンボルの前に_を付けないため削除．
+  
+2012/02/02
+・core_config.h
+  ・x_set_ipm()で，iipmが'0'(IIPM_ENAALL)の時の問題を修正．
+・core_support.S
+  ・toppers_asm_custom_idleの前後で使用するレジスタを変更．この変更に
+    より，toppers_asm_custom_idle で関数呼び出しをする場合は，アセンブ
+    ラレベルでのレジスタの保存が必要なくなった．
+    
+2012/02/23
+・core_support.S
+  ・core_exc_entryでbasepriを読み込んだあと，全割込みロック状態のチェ
+    ックために上書きしていた問題を修正
+  ・call_texrtnとcall_texrtnの呼び出しをb命令で記述すると，16bit命令と
+    して解釈するコンパイラがあるため，メモリ配置によってはレンジが足り
+    なくなる．bx命令に変更することで問題を修正．
+
+2012/01/31
+・core_timer.c
+ ・タイマ割込みハンドラにて，probe_int のため，COUNTFLAGをクリアするた
+   めに読み込んでいたレジスタが誤っていた問題を修正．
+ 
+2011/12/03
+・core_test.h の多重インクルード防止マクロの名称修正
+ ・CHIP を CORE に修正．
+
+・ARMCC対応に伴う変更
+  ・core_asm.inc(追加)
+    ・GCCのアセンブラのディレクティブの定義を記述したファイルを追加．
+  ・core_config.h(変更)
+    ・core_insn.h のインクルード方法を""から<>に変更して，コンパイラの
+      引数で指定された順でインクルードファイルをサーチするよう変更．
+   ・メモリバリア命令(Asm("":::"memory"))をマクロ化してcore_insn.h に
+     定義を使用するよう変更．     
+  ・core_insn.h(変更)
+   ・メモリバリア命令(Asm("":::"memory"))のマクロ定義を追加
+  ・core_support.S(変更)
+   ・ARMCCとファイルを共有するため，ディレクティブをマクロに書き換え．      
+  ・start.S(変更)
+   ・ARMCCとファイルを共有するため，ディレクティブをマクロに書き換え．  
+   
+2011/07/26
+・CCRのSTKALIGNが'1'の場合への対応
+  割込み・例外の出入口処理では，スタックは常に8byte境界となるように変
+  更．
+  
+2011/07/25
+・CPU例外の優先度の初期化
+  CPUロックでマスクできない優先度（内部優先度0）に初期化する処理を追加．
+  
+・CFG_INTで使用できる割込み優先度の最大値の修正(core.tf)
+  ・最大値が1つ大きな値となっていた．
+  
+・カーネル管理外の割込みの扱いの変更
+  ・共通部での扱いの変更に伴う変更．
+  
+・タイマ割込みハンドラでのCOUNTFLAGのクリア処理の修正
+  SYSTIC_CONTROL_STATUSレジスタのCOUNTFLAGをクリアするには，
+  SYSTIC_CURRENT_VALUEレジスタを読み込む必要があるが，誤って
+  SYSTIC_CONTROL_STATUSレジスタを読み込んでいた．
+
+・core_int_entryにおけるbasepriの設定
+  NVIC優先度マスクが自動的に設定されるため優先度マスクの点では必要な
+  いが，x_get_ipm()がbasepriを参照するため，basepriも更新するよう変更．
+
+2011/07/24
+・_ret_int_2/svc_handler の変更
+  割込み優先度マスクが全解除状態でしかタスク例外を呼び出さないように
+  仕様が変更されたため，_ret_int_2では，割込み優先度マスクを，全解除
+  状態（TIPM_ENAALL）に設定するよう変更．
+  svc_handlerはタスクにリターンする時にbasepriをIIPM_ENAALLにするよう
+  に変更．
+  
+・x_config_int()/set_exc_int_priority()の修正  
+  x_config_int()から，set_exc_int_priority()に対して外部優先度を引数に
+  して呼び出しいたため，内部優先度を引数で呼び出すよう修正．
+  set_exc_int_priority()も受け取った引数を内部優先度として優先度を設定
+  するように修正．
+
+2011/07/23
+・共通部を1.4.0にupdate.
+
+・arm依存部と同様にチップ依存部を置けるようにディレクトリ構造を変更
+
+・arm依存部と同様にファイル名のプリフィックスをcoreに変更．
+
+・call_atexitの削除
+  software_term_hook の呼び出しは，core_terminate()に移動．
+  
+・共通部を1.7.0にupdate.  
+
+・タスクコンテキストブロックの型名の変更
+  CTXB型をTSKCTXB型に名称変更．
+
+・ターゲット依存部でサポートする機能を示すマクロの変更
+  TOPPERS_SUPPORT_DIS_INTをTOPPERS_TARGET_SUPPORT_DIS_INTに，
+  TOPPERS_SUPPORT_ENA_INTをTOPPERS_TARGET_SUPPORT_ENA_INTに，
+  変更．
+  
+・exc_sense_unlockの定義を削除．  
+  
+・オフセットファイルをコンフィギュレータで生成する方法への対応
+
+・CHECK_FUNC_ALIGN，CHECK_FUNC_NONNULL，CHECK_STACK_ALIGN，
+  CHECK_STACK_NONNULL，CHECK_MPF_ALIGN，CHECK_MPF_NONNULLの定義を，タ
+  ーゲット依存部のテンプレートファイル（パス3）からヘッダファイルに移
+  動．
+
+・割込みと例外の入り口処理の名前を変更
+  int_entryをcore_int_entryへexc_entryをcore_exc_entryに変更．
+  オフセットの取得方法が変更となったため，元の名前のままだとcfg1_out.c
+  がコンパイルエラーとなるために変更．
+  
+・ターゲット依存部で定義する名称のリネームの追加
+
+・call_texrtnを呼び出す条件に「ipmflgがtrue」を追加
+ 
+・カーネル管理外のCPU例外の扱いの変更
+
+2011/07/22
+・x_disable_int() : prc_config.h の修正   
+ 割込み禁止レジスタのアドレスを取得する際に，ベースの値をuint32_tの
+ ポインタにキャストしていなったため，正しいアドレスが生成できていな
+ かった問題を修正．
+ 
+・非タスクコンテキスト用のスタックの初期値マクロ(TOPPERS_ISTKPT)の修正 
+  : prc_config.h
+ バイト単位で取得するように，(char_t *) にキャストして掲載するように修
+ 正．
+  
+・LOG_INH_ENTRYとLOG_INH_LEAVEの誤記 : prc_support.S
+  LOG_INH_ENTRYとLOG_INH_LEAVEであるべき箇所が LOG_EXC_ENTRYと
+  LOG_EXC_ENTRYになっている問題を修正．
+
+・TOPPERS_CUSTOM_IDLE のtypoの修正 : prc_support.S
+
+・svn_hanlderの修正 :  prc_support.S
+  一律EXC_FRAME_SIZE分のスタックを捨てていたが，Configureation and 
+  Control Register(CCR)のSTKALIGNが'1'の場  合は，8byte境界にアライン
+  されるため，捨てるサイズが異なる．アラインされたかは，xPSRの9ビッ
+  トをチェックすることにより判定する．
+  
+・prc.tfの修正
+  boostのバージョンによって変わる挙動を吸収．
+  http://www.toppers.jp/TOPPERS-USERS/201004/msg00034.html
+  
+・_kernel_istkpt の削除 : prc_cfg1_out.h
+  _kernel_istkpt が必要ないターゲットが存在するため，必要なら，ターゲ
+  ット依存部で定義するように変更．
+
+2008/08/22
+・prc_user.txt/prc_design.txt
+  ・2008/8/21の技術検討会での議論結果を反映．
+  
+・prc_support.S/prc_config.c/prc_config.h/arm_m.h
+  ・コンテキスト判定をexc_ncntからアクティブなスタックに変更
+  
+・prc_config.c
+  ・set_exc_int_priority() でサポート可能なIRQの上限を239に拡張．
+  
+・start.S 
+  ・起動時はThreadモードを前提としていることを明記．
+  ・ブートローダー等から起動される場合を想定し，MSPを有効にするように
+    変更．
+    
+・prc_timer.c
+  ・コメントを修正
+  ・デバッグ用コードを削除
+
+2008/07/11
+・最初のリリース
