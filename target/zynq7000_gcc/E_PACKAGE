@@ -1,0 +1,5 @@
+E_PACKAGE asp3_zynq7000_gcc
+VERSION %date
+
+INCLUDE ../../MANIFEST
+INCLUDE ../../arch/arm_gcc/MANIFEST

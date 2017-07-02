@@ -1,0 +1,69 @@
+#
+#		Makefileのターゲット依存部（Zynq7000用）
+#
+#  $Id: Makefile.target 572 2016-02-01 14:40:09Z ertl-hiro $
+# 
+
+#
+#  システム名，チップ名，コア名，開発環境名の定義
+#
+SYS = zynq7000
+CHIP = mpcore
+CORE = arm
+TOOL = gcc
+
+#  ボード名
+ifeq "$(strip $(BOARD))" ""
+ #BOARD = ZYBO
+ BOARD = ARDUZYNQ
+endif
+
+#
+#  各セグメントの開始アドレスの定義
+#
+TEXT_START_ADDRESS=0x00100000
+
+
+#
+#  MPCoreの種類の定義
+#
+MPCORE_TYPE = CA9
+
+#
+#  コンパイルオプション
+#
+INCLUDES := $(INCLUDES) -I$(TARGETDIR)
+COPTS := $(COPTS) -mlittle-endian
+LDFLAGS := $(LDFLAGS) -mlittle-endian
+CDEFS    := $(CDEFS) -DG_SYSLOG -DBOARD_$(BOARD) -DTOPPERS_NOSAFEG -DCORE0
+
+#
+#  カーネルに関する定義
+#
+KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR)
+KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o pl310.o target_timer.o
+
+#
+#  システムサービスに関する定義
+#
+SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/arm_gcc/common
+SYSSVC_COBJS := $(SYSSVC_COBJS) target_serial.o
+
+#
+#  トレースログ記録のサンプルコードに関する定義
+#
+ifdef ENABLE_TRACE
+	COPTS := $(COPTS) -DTOPPERS_ENABLE_TRACE
+	KERNEL_DIRS := $(KERNEL_DIRS) $(SRCDIR)/arch/logtrace
+	KERNEL_COBJS := $(KERNEL_COBJS) trace_config.o trace_dump.o
+endif
+
+#
+#  リンカスクリプトの定義
+#
+LDSCRIPT = $(TARGETDIR)/zynq7000.ld
+
+#
+#  チップ依存部
+#
+include $(SRCDIR)/arch/arm_gcc/mpcore/Makefile.chip
