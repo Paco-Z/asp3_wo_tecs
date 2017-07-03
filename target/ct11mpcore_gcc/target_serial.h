@@ -51,7 +51,7 @@
 /*
  *  SIO割込みを登録するための定義
  */
-#define INTNO_SIO		SIO_UART_IRQNO		/* UART割込み番号 */
+#define INTNO_SIO		EB_IRQNO_UART0		/* UART割込み番号 */
 #define INTPRI_SIO		(-2)				/* UART割込み優先度 */
 #define INTATR_SIO		TA_NULL				/* UART割込み属性 */
 

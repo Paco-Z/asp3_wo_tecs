@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -74,24 +74,20 @@ chip_initialize(void)
 	 */
 	mpcore_enable_scu();
 
-#ifdef CORE0
 	/*
 	 *  すべてのプロセッサをノーマルモードに
 	 */
 	sil_wrw_mem(MPCORE_SCU_CPUSTAT, 0x00U);
-#endif
 
 	/*
 	 *  キャッシュをイネーブル
 	 */
 	arm_enable_cache();
 
-#ifdef CORE0
 	/*
 	 * GICのディストリビュータの初期化
 	 */
 	gicd_initialize();
-#endif
 
 	/*
 	 * GICのCPUインタフェースの初期化
@@ -122,12 +118,10 @@ chip_terminate(void)
 	 */
 	gicc_terminate();
 
-#ifdef CORE0
 	/*
 	 *  GICのディストリビュータの終了処理
 	 */
 	gicd_terminate();
-#endif
 
 	/*
 	 *  コア依存の終了処理

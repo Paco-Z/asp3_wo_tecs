@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2007-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -97,15 +97,7 @@
 /*
  *  ベクタテーブルを置くメモリ領域
  */
-#if defined(CORE0)
 #define VECTOR_ADDR		0x01000000
-#elif defined(CORE1)
-#define VECTOR_ADDR		0x02000000
-#elif defined(CORE2)
-#define VECTOR_ADDR		0x03000000
-#elif defined(CORE3)
-#define VECTOR_ADDR		0x04000000
-#endif
 #define VECTOR_SIZE		0x00100000		/* 1MB */
 #define VECTOR_ATTR		MMU_ATTR_VECTOR
 

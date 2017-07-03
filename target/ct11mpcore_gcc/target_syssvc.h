@@ -80,19 +80,8 @@ extern void	target_fput_log(char c);
 /*
  *  SIOドライバで使用するUARTに関する指定
  */
-#if defined(CORE0)
 #define SIO_UART_BASE	EB_UART0_BASE
 #define SIO_UART_IRQNO	EB_IRQNO_UART0
-#elif defined(CORE1)
-#define SIO_UART_BASE	EB_UART1_BASE
-#define SIO_UART_IRQNO	EB_IRQNO_UART1
-#elif defined(CORE2)
-#define SIO_UART_BASE	EB_UART2_BASE
-#define SIO_UART_IRQNO	EB_IRQNO_UART2
-#elif defined(CORE3)
-#define SIO_UART_BASE	EB_UART3_BASE
-#define SIO_UART_IRQNO	EB_IRQNO_UART3
-#endif
 
 #define UART_IBRD_DEF	EB_UART_IBRD_38400
 #define UART_FBRD_DEF	EB_UART_FBRD_38400

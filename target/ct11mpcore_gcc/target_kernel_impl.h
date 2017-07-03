@@ -76,15 +76,7 @@
 /*
  *  target_fput_logで使用するUARTの指定
  */
-#if defined(CORE0)
 #define FPUT_UART_BASE	EB_UART0_BASE
-#elif defined(CORE1)
-#define FPUT_UART_BASE	EB_UART1_BASE
-#elif defined(CORE2)
-#define FPUT_UART_BASE	EB_UART2_BASE
-#elif defined(CORE3)
-#define FPUT_UART_BASE	EB_UART3_BASE
-#endif
 
 /*
  *  微少時間待ちのための定義（本来はSILのターゲット依存部）

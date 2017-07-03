@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -62,13 +62,8 @@
 /*
  *  オーバランタイマドライバで使用するタイマに関する指定
  */
-#if defined(CORE0)
 #define OVRTIMER_TIMER_BASE		EB_TIMER0_BASE
 #define OVRTIMER_TIMER_IRQNO	EB_IRQNO_TIMER01
-#elif defined(CORE1)
-#define OVRTIMER_TIMER_BASE		EB_TIMER2_BASE
-#define OVRTIMER_TIMER_IRQNO	EB_IRQNO_TIMER23
-#endif
 
 #define SP804_CONFIG		(SP804_INT_ENABLE|SP804_MODE_ONESHOT \
 									|SP804_SIZE_32|SP804_PRESCALE_1)

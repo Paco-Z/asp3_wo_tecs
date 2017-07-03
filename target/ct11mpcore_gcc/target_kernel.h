@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2006-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -58,9 +58,7 @@
 /*
  *  オーバランハンドラのサポートの可否
  */
-#if defined(CORE0) || defined(CORE1)
 #define TOPPERS_TARGET_SUPPORT_OVRHDR
-#endif /* defined(CORE0) || defined(CORE1) */
 
 /*
  *  チップで共通な定義
