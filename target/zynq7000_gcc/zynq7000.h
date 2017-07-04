@@ -100,6 +100,16 @@
 #define DDR_SIZE 0x20000000 /* 512MB */
 
 /*
+ * Overun timer prescale value
+ * count rate is divided by 2^(N+1)
+ * 11 : 1 count  36.9us : max 2,418,300us  
+ * 12 : 1 count  73.8us : max 4,836,601us  
+ * 13 : 1 count 147.6us : max 9,673,202us
+ */
+#define OVRTIMER_TIMER_PRESCALE_VAL  13
+#define OVRTIMER_TIMER_TICK_NS       148
+
+/*
  *  UART base address definitions (used in target_serial.c)
  *
  */
@@ -190,6 +200,7 @@
  */
 #define OVRTIMER_TIMER_PRESCALE_VAL  13
 #define OVRTIMER_TIMER_TICK_NS       148
+
 /*
  *  UART base address definitions (used in target_serial.c)
  *
