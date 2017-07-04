@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_timer.h 742 2016-04-07 13:11:22Z ertl-hiro $
+ *  $Id: target_timer.h 795 2017-07-03 17:08:39Z ertl-hiro $
  */
 
 /*
@@ -44,6 +44,11 @@
 
 #ifndef TOPPERS_TARGET_TIMER_H
 #define TOPPERS_TARGET_TIMER_H
+
+/*
+ *  ターゲットのハードウェア資源の定義
+ */
+#include "ct11mpcore.h"
 
 /*
  *  チップで共通な定義（MPCore用）
@@ -55,7 +60,6 @@
  */
 #ifdef TOPPERS_SUPPORT_OVRHDR
 
-#include "ct11mpcore.h"
 #include "sp804.h"
 #include <sil.h>
 

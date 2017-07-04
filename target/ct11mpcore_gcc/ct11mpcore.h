@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: ct11mpcore.h 478 2016-01-02 02:08:26Z ertl-hiro $
+ *  $Id: ct11mpcore.h 795 2017-07-03 17:08:39Z ertl-hiro $
  */
 
 /*
@@ -82,8 +82,8 @@
  *  MPCore内蔵のタイマとウォッチドッグを1MHzで動作させるためのプリスケー
  *  ラの設定値（コアのクロックが200MHzの場合）
  */
-#define MPCORE_TMR_PS_1MHZ		99
-#define MPCORE_WDG_PS_1MHZ		99
+#define MPCORE_TMR_PS_VALUE		99
+#define MPCORE_WDG_PS_VALUE		99
 
 /*
  *  Emulation Board上のリソース

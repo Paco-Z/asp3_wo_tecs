@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2006-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: chip_timer.c 358 2015-07-26 10:26:23Z ertl-hiro $
+ *  $Id: chip_timer.c 795 2017-07-03 17:08:39Z ertl-hiro $
  */
 
 /*
@@ -82,12 +82,12 @@ target_hrt_initialize(intptr_t exinf)
 	sil_wrw_mem(MPCORE_WDG_CTRL, MPCORE_WDG_CTRL_DISABLE);
 
 	/*
-	 *  ウォッチドッグのリロード値を0xffffffffに設定し，動作を開始する．
+	 *  ウォッチドッグのリロード値を設定し，動作を開始する．
 	 */
-	sil_wrw_mem(MPCORE_WDG_LR, 0xffffffffU);
+	sil_wrw_mem(MPCORE_WDG_LR, MPCORE_WDG_LR_VALUE);
 	sil_wrw_mem(MPCORE_WDG_CTRL,
 				MPCORE_WDG_CTRL_ENABLE | MPCORE_WDG_CTRL_AUTORELOAD
-					| (MPCORE_WDG_PS_1MHZ << MPCORE_WDG_CTRL_PS_SHIFT));
+					| (MPCORE_WDG_PS_VALUE << MPCORE_WDG_CTRL_PS_SHIFT));
 
 	/*
 	 *  タイマのカウント値を0（カウントダウンして停止した状態）に設定し，
@@ -96,7 +96,7 @@ target_hrt_initialize(intptr_t exinf)
 	sil_wrw_mem(MPCORE_TMR_CNT, 0U);
 	sil_wrw_mem(MPCORE_TMR_CTRL,
 				MPCORE_TMR_CTRL_ENABLE | MPCORE_TMR_CTRL_ENAINT
-					| (MPCORE_TMR_PS_1MHZ << MPCORE_TMR_CTRL_PS_SHIFT));
+					| (MPCORE_TMR_PS_VALUE << MPCORE_TMR_CTRL_PS_SHIFT));
 
 	/*
 	 *  タイマ割込み要求をクリアする．

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: chip_timer.h 537 2016-01-16 01:26:38Z ertl-hiro $
+ *  $Id: chip_timer.h 795 2017-07-03 17:08:39Z ertl-hiro $
  */
 
 /*
@@ -64,6 +64,21 @@
 #define INTPRI_TIMER	(TMAX_INTPRI - 1)	/* 割込み優先度 */
 #define INTATR_TIMER	TA_NULL				/* 割込み属性 */
 
+/*
+ *  タイマの設定値のデフォルト値の定義
+ */
+#ifndef MPCORE_WDG_LR_VALUE
+#define MPCORE_WDG_LR_VALUE		0xffffffffU	/* ウォッチドッグのリロード値 */
+#endif /* MPCORE_WDG_LR_VALUE */
+
+#ifndef MPCORE_WDG_FREQ
+#define MPCORE_WDG_FREQ			1		/* ウォッチドッグの駆動周波数 */
+#endif /* MPCORE_WDG_FREQ */
+
+#ifndef MPCORE_TMR_FREQ
+#define MPCORE_TMR_FREQ			1		/* タイマの駆動周波数 */
+#endif /* MPCORE_TMR_FREQ */
+
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
@@ -84,9 +99,10 @@ target_hrt_get_current(void)
 {
 	/*
 	 *  ウォッチドッグのカウント値を読み出し，ダウンカウンタであるため，
-	 *  ビット反転して返す．
+	 *  MPCORE_WDG_LR_VALUEから引き，MPCORE_WDG_FREQで除した値を返す．
 	 */
-	return((HRTCNT) ~(sil_rew_mem(MPCORE_WDG_CNT)));
+	return((HRTCNT)((MPCORE_WDG_LR_VALUE - sil_rew_mem(MPCORE_WDG_CNT))
+														/ MPCORE_WDG_FREQ));
 }
 
 /*
@@ -99,9 +115,9 @@ Inline void
 target_hrt_set_event(HRTCNT hrtcnt)
 {
 	/*
-	 *  タイマのカウント値をhrtcntに設定する．
+	 *  タイマのカウント値を(hrtcnt * MPCORE_TMR_FREQ)に設定する．
 	 */
-	sil_wrw_mem(MPCORE_TMR_CNT, hrtcnt);
+	sil_wrw_mem(MPCORE_TMR_CNT, hrtcnt * MPCORE_TMR_FREQ);
 }
 
 /*
@@ -119,7 +135,11 @@ Inline void target_hrt_raise_event(void)
 /*
  *  割込みタイミングに指定する最大値
  */
-#define HRTCNT_BOUND	4000000002U
+#if !defined(TCYC_HRTCNT) || (TCYC_HRTCNT > 4002000002U)
+#define HRTCNT_BOUND		4000000002U
+#else
+#define HRTCNT_BOUND		(TCYC_HRTCNT - 2000000U)
+#endif
 
 /*
  *  高分解能タイマ割込みハンドラ

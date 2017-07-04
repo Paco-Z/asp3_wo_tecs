@@ -75,8 +75,14 @@
  *      - period    = 1us
  *      - periphclk = 325MHz
  */
-#define MPCORE_TMR_PS_1MHZ		((325 >> 1) - 1)  // preescaler for private watchdog
-#define MPCORE_WDG_PS_1MHZ		((325 >> 1) - 1)  // preescaler for private timer
+#define MPCORE_TMR_PS_VALUE		64  // preescaler for private watchdog
+#define MPCORE_WDG_PS_VALUE		64  // preescaler for private timer
+
+#define TCYC_HRTCNT				858993459		/* floor(2^32/5) */
+
+#define MPCORE_WDG_LR_VALUE		4294967294		/* TCYC_HRTCNT * 5 - 1 */
+#define MPCORE_WDG_FREQ			5
+#define MPCORE_TMR_FREQ			5
 
 /*
  * Definition of the 115200bps baud rate constants
@@ -151,8 +157,14 @@
  *      - period    = 1us
  *      - periphclk = 325MHz
  */
-#define MPCORE_TMR_PS_1MHZ		((325 >> 1) - 1)  // preescaler for private watchdog
-#define MPCORE_WDG_PS_1MHZ		((325 >> 1) - 1)  // preescaler for private timer
+#define MPCORE_TMR_PS_VALUE		64  // preescaler for private watchdog
+#define MPCORE_WDG_PS_VALUE		64  // preescaler for private timer
+
+#define TCYC_HRTCNT				858993459		/* floor(2^32/5) */
+
+#define MPCORE_WDG_LR_VALUE		4294967294		/* TCYC_HRTCNT * 5 - 1 */
+#define MPCORE_WDG_FREQ			5
+#define MPCORE_TMR_FREQ			5
 
 /*
  * Definition of the 115200bps baud rate constants

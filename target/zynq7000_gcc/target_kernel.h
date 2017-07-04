@@ -50,6 +50,11 @@
 #define TOPPERS_TARGET_KERNEL_H
 
 /*
+ *  TCYC_HRTCNTのためにインクルード
+ */
+#include "zynq7000.h"
+
+/*
  *  割込み優先度の範囲
  */
 #define TMIN_INTPRI		(-15)		/* 割込み優先度の最小値（最高値）*/
