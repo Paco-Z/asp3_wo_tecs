@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_raster1.c 738 2016-04-05 14:19:24Z ertl-hiro $
+ *  $Id: test_raster1.c 756 2016-10-03 10:47:38Z ertl-hiro $
  */
 
 /* 
@@ -108,7 +108,7 @@
  * 【テストシーケンス】
  *
  *	== TASK1 ==
- *		call(set_bit_func(bit_kernel))
+ *		call(set_bit_service(get_bit_kernel()))
  *	1:	act_tsk(TASK2)
  *		sta_alm(ALM1, TEST_TIME_CP) ... ALM1が実行開始するまで
  *		slp_tsk()
@@ -310,7 +310,7 @@ task1(intptr_t exinf)
 
 	test_start(__FILE__);
 
-	set_bit_func(bit_kernel);
+	set_bit_service(get_bit_kernel());
 
 	check_point(1);
 	ercd = act_tsk(TASK2);

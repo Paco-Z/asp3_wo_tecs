@@ -4,7 +4,7 @@
 #  TOPPERS Software
 #      Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#  Copyright (C) 2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2016,2017 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: testexec.rb 675 2016-03-06 01:30:21Z ertl-hiro $
+#  $Id: testexec.rb 796 2017-07-19 14:21:08Z ertl-hiro $
 # 
 
 require "pp"
@@ -60,27 +60,28 @@ TEST_SPEC = {
   "dtq1"     => { SRC: "test_dtq1" },
   "flg1"     => { SRC: "test_flg1" },
   "hrt1"     => { SRC: "test_hrt1" },
-  "mutex1"   => { SRC: "test_mutex1", BIT: "mutex" },
-  "mutex2"   => { SRC: "test_mutex2", BIT: "mutex" },
-  "mutex3"   => { SRC: "test_mutex3", BIT: "mutex" },
-  "mutex4"   => { SRC: "test_mutex4", BIT: "mutex" },
-  "mutex5"   => { SRC: "test_mutex5", BIT: "mutex" },
-  "mutex6"   => { SRC: "test_mutex6", BIT: "mutex" },
-  "mutex7"   => { SRC: "test_mutex7", BIT: "mutex" },
-  "mutex8"   => { SRC: "test_mutex8", BIT: "mutex" },
+  "int1"     => { SRC: "test_int1" },
+  "mutex1"   => { SRC: "test_mutex1" },
+  "mutex2"   => { SRC: "test_mutex2" },
+  "mutex3"   => { SRC: "test_mutex3" },
+  "mutex4"   => { SRC: "test_mutex4" },
+  "mutex5"   => { SRC: "test_mutex5" },
+  "mutex6"   => { SRC: "test_mutex6" },
+  "mutex7"   => { SRC: "test_mutex7" },
+  "mutex8"   => { SRC: "test_mutex8" },
   "notify1"  => { SRC: "test_notify1" },
-  "raster1"  => { SRC: "test_raster1", BIT: "kernel" },
+  "raster1"  => { SRC: "test_raster1" },
   "raster2"  => { SRC: "test_raster2" },
   "sem1"     => { SRC: "test_sem1" },
   "sem2"     => { SRC: "test_sem2" },
   "sysman1"  => { SRC: "test_sysman1" },
   "sysstat1" => { SRC: "test_sysstat1" },
-  "task1"    => { SRC: "test_task1", BIT: "kernel" },
+  "task1"    => { SRC: "test_task1" },
   "tmevt1"   => { SRC: "test_tmevt1" },
 
   # メッセージバッファ機能拡張パッケージの機能テストプログラム
-  "messagebuf1" => { SRC: "test_messagebuf1", BIT: "kernel" },
-  "messagebuf2" => { SRC: "test_messagebuf2", BIT: "kernel" },
+  "messagebuf1" => { SRC: "test_messagebuf1" },
+  "messagebuf2" => { SRC: "test_messagebuf2" },
 
   # オーバランハンドラ機能拡張パッケージの機能テストプログラム
   "ovrhdr1"  => { SRC: "test_ovrhdr1" },
@@ -177,9 +178,6 @@ def BuildTest(test, testSpec, mkdirFlag=false)
       configCommand += " -C #{testSpec[:CDL]}.cdl"
     else
       configCommand += " -C test_pf.cdl"
-    end
-    if testSpec.has_key?(:BIT)
-      configCommand += " -S bit_#{testSpec[:BIT]}.o"
     end
     if testSpec.has_key?(:DEFS)
       configCommand += " -O \"#{testSpec[:DEFS]}\""

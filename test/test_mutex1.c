@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_mutex1.c 738 2016-04-05 14:19:24Z ertl-hiro $
+ *  $Id: test_mutex1.c 756 2016-10-03 10:47:38Z ertl-hiro $
  */
 
 /* 
@@ -75,7 +75,7 @@
  * 【テストシーケンス】
  *
  *	== TASK1（優先度：低）==
- *		call(set_bit_func(bit_mutex))
+ *		call(set_bit_service(get_bit_mutex()))
  *	1:	ref_mtx(MTX1, &rmtx)
  *		assert(rmtx.htskid == TSK_NONE)
  *		assert(rmtx.wtskid == TSK_NONE)
@@ -133,8 +133,6 @@
 #include "kernel_cfg.h"
 #include "test_mutex.h"
 
-extern ER	bit_mutex(void);
-
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
@@ -145,7 +143,7 @@ task1(intptr_t exinf)
 
 	test_start(__FILE__);
 
-	set_bit_func(bit_mutex);
+	set_bit_service(get_bit_mutex());
 
 	check_point(1);
 	ercd = ref_mtx(MTX1, &rmtx);

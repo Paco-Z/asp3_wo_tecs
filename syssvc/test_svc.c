@@ -76,7 +76,7 @@ test_start(char *progname)
  *	自己診断関数の設定
  */
 void
-set_bit_func(BIT_FUNC bit_func)
+set_bit_service(BIT_FUNC bit_func)
 {
 	check_bit_func = bit_func;
 }

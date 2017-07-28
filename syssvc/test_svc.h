@@ -65,7 +65,7 @@ extern void	test_start(char *progname);
 /*
  *	自己診断関数の設定
  */
-extern void	set_bit_func(BIT_FUNC bit_func);
+extern void	set_bit_service(BIT_FUNC bit_func);
 
 /*
  *	チェックポイント
@@ -118,5 +118,22 @@ extern void	check_ercd_error(ER ercd, const char *file, int_t line);
 #ifdef __cplusplus
 }
 #endif
+
+/*
+ *  TECS版との互換性のために用意
+ */
+Inline BIT_FUNC
+get_bit_kernel(void)
+{
+	extern ER bit_kernel(void);
+	return(bit_kernel);
+}
+
+Inline BIT_FUNC
+get_bit_mutex(void)
+{
+	extern ER bit_mutex(void);
+	return(bit_mutex);
+}
 
 #endif /* TOPPERS_TEST_SVC_H */
