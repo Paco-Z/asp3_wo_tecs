@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: check.h 356 2015-07-25 10:44:32Z ertl-hiro $
+ *  $Id: check.h 801 2017-07-20 16:07:56Z ertl-hiro $
  */
 
 /*
@@ -63,25 +63,9 @@
 #define VALID_ALMID(almid)	(TMIN_ALMID <= (almid) && (almid) <= tmax_almid)
 
 /*
- *  オブジェクト番号の範囲の判定
- */
-#ifndef VALID_INTNO_DISINT
-#define VALID_INTNO_DISINT(intno)    VALID_INTNO(intno)
-#endif /* VALID_INTNO_DISINT */
-
-#ifndef VALID_INTNO_CREISR
-#define VALID_INTNO_CREISR(intno)    VALID_INTNO(intno)
-#endif /* VALID_INTNO_CREISR */
-
-/*
  *  優先度の範囲の判定
  */
 #define VALID_TPRI(tpri)	(TMIN_TPRI <= (tpri) && (tpri) <= TMAX_TPRI)
-
-#ifndef VALID_INTPRI_CHGIPM
-#define VALID_INTPRI_CHGIPM(intpri) \
-				(TMIN_INTPRI <= (intpri) && (intpri) <= TIPM_ENAALL)
-#endif /* VALID_INTPRI_CHGIPM */
 
 /*
  *  相対時間の範囲の判定

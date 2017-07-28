@@ -2,8 +2,8 @@
 		TOPPERS/ASP3カーネル
 		変更履歴
 
-		対応バージョン: Release 3.1.0
-		最終更新: 2016年5月15日
+		対応バージョン: Release 3.2.0
+		最終更新: 2017年7月21日
 
 このドキュメントは，TOPPERS/ASP3カーネルの変更履歴を，新しい方から順に
 記述したものである．また，TOPPERS/ASPカーネル Release 1.9.1との主な違い
@@ -14,7 +14,7 @@
      Toyohashi Open Platform for Embedded Real-Time Systems/
      Advanced Standard Profile Kernel
 
- Copyright (C) 2014-2016 by Embedded and Real-Time Systems Laboratory
+ Copyright (C) 2014-2017 by Embedded and Real-Time Systems Laboratory
              Graduate School of Information Science, Nagoya Univ., JAPAN
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -46,7 +46,98 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
- $Id: version.txt 752 2016-05-14 15:06:22Z ertl-hiro $
+ $Id: version.txt 805 2017-07-20 17:48:05Z ertl-hiro $
+----------------------------------------------------------------------
+
+		TOPPERS/ASP3カーネル
+		Release 3.1.0 から 3.2.0 への主な変更点
+
+○変更点のリスト
+
+・割込み管理機能の拡張
+	- clr_int，ras_int，prb_intの3つのサービスコールの追加．
+	- それに合わせてターゲット依存部の仕様を拡張／整理．
+
+・アイドル処理の設計変更（ターゲット依存部のみの修正）
+	- アイドル処理中で発生した割込みからは，リターンしない設計に変更．
+
+・割込み要求のセットの追加（ターゲット依存部のみの修正）
+	- ターゲット依存部で，割込み要求をセットする関数（raise_int）を用
+	  意することにした．
+	- RZ/A1チップ依存部を，clear_int，probe_int，raise_intを使用するよ
+	  うに修正．
+
+・テストプログラムから呼び出す自己診断サービスをTECSを用いて構築
+
+・動的生成機能拡張パッケージのバグフィックス
+	- acre_tskで，優先度の高いタスクを生成・起動してもディスパッチが起
+	  こらない不具合を修正．
+	- acre_flgで，CPUロックの解除が抜けていた不具合を修正．
+	- fsnd_dtqで，E_ILUSEエラーのチェック方法を修正．
+	- get_tstとfsnd_dtqで，エラーコードにE_OKを上書きしている不具合を
+	  修正．
+	- check_nfyinfoで，エラーの通知処理が指定されていない場合にエラー
+	  となる不具合を修正．
+	- notify_handlerで，snd_dtqを呼んでいたのをpsnd_dtqに修正．
+	- acre_tskで，p_tinib->stkszに格納する値（stksz）を丸めた値とする
+	  ように修正．
+
+・ARMコア依存部，ターゲット依存部の修正
+	- GICターゲット依存部を，clr_int，ras_int，prb_intをサポートするよ
+	  うに修正．その際に，raise_intがソフトウェア生成割込み（SGI）に対
+	  応できるように拡張．
+	- GICターゲット依存部で，SGIに対応する割込みコンフィギュレーション
+	  レジスタには，書き込みを行わないように修正．
+	- Makefile.coreにおけるGCC_TARGETの定義を上書き可能にした．
+	- current_cpsr/set_cpsrをcore_rename.defでリネームするのをやめた．
+	- MPCoreチップ依存部のタイマの実装が，高い周波数が入力されている場
+	  合に対応できない問題を修正．
+	- CT11MPcore向けのターゲット依存部で，コア0以外で実行するための設
+	  定を削除．MPCORE依存部の「#ifdef CORE0」を削除．
+
+・コンフィギュレータの修正
+	- cfg1_out.cに，SIL_ENDIAN_BIT/LITTLEの誤定義の検出処理を生成する
+	  ように修正．
+
+・テストプログラムの追加
+	- 割込み管理機能のテスト(1)（test_int1）を追加．
+
+・その他の修正
+	- offsetofの定義を改善．
+	- gentest.rbを，ISRと割込みハンドラを扱えるように修正．
+	- sample/Makefile中のコンパイラに対する-Tオプションを，-Wl,-Tオプ
+	  ションに変更．
+	- バナーのコピーライトの年を修正．
+
+・ドキュメントの充実，コメントの修正
+
+・バージョン番号の更新
+	- カーネルのバージョン番号を更新．
+
+○ターゲット依存部の要修正箇所（3.1.0 → 3.2.0）
+
+(1) アイドル処理の設計変更
+	- アイドル処理の設計変更に伴い，ディスパッチャ本体のアイドル処理，
+	  割込みハンドラの出入口処理，CPU例外ハンドラの出入口処理を修正す
+	  る（ターゲット非依存部には修正が加わっていないため，ターゲット依
+	  存部を修正しなくても動作するが，今後のことを考え，修正することを
+	  推奨する）．
+
+(2) 割込み管理機能の拡張への対応
+	- TOPPERS_CLR_INT，TOPPERS_RAS_INT，TOPPERS_PRB_INTの定義を追加す
+	  る（サポートする場合のみ）．
+	- VALID_INTNO_CLRINT，VALID_INTNO_RASINT，VALID_INTNO_PRBINTの定義
+	  を追加する（必要な場合のみ）．
+	- check_intno_cfg，check_intno_clear，check_intno_raise，raise_int
+      を追加する．
+	- disable_int，enable_int，clear_int，probe_intの仕様変更に対応す
+	  る．
+
+(3) 割込み要求のクリアの確認
+	- 割込み要求ラインがエッジトリガであり，トリガされた割込み要求がハー
+	  ドウェアで自動的にクリアされない場合に，割込みハンドラの出入口処
+	  理でクリアを行っているかを確認する．
+
 ----------------------------------------------------------------------
 
 		TOPPERS/ASP3カーネル
@@ -76,7 +167,7 @@
 	- コンフィギュレータのパス3で，オブジェクトのID番号の割付けを外部か
 	  ら取り込んでいる場合に対応．
 	- test_dlynse.cを，TCYC_HRTCNTが定義されている場合に対応．
-	- bit_kernel.cのを，p_schedtskとdspflgの整合性を検査するように修正．
+	- bit_kernel.cを，p_schedtskとdspflgの整合性を検査するように修正．
 	- 静的APIのパラメータ末に改行がある場合の不具合を修正．
 
 ・ARMコア依存部の修正

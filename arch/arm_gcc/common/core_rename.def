@@ -15,8 +15,6 @@ svc_handler
 pabort_handler
 dabort_handler
 fiq_handler
-current_cpsr
-set_cpsr
 
 # core_kernel_impl.c
 excpt_nest_count

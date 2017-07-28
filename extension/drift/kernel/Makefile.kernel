@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: Makefile.kernel 554 2016-01-17 13:21:59Z ertl-hiro $
+#  $Id: Makefile.kernel 801 2017-07-20 16:07:56Z ertl-hiro $
 # 
 
 #
@@ -109,7 +109,8 @@ sys_manage = rot_rdq.o get_tid.o get_lod.o get_nth.o \
 		loc_cpu.o unl_cpu.o dis_dsp.o ena_dsp.o \
 		sns_ctx.o sns_loc.o sns_dsp.o sns_dpn.o sns_ker.o
 
-interrupt = intini.o dis_int.o ena_int.o chg_ipm.o get_ipm.o
+interrupt = intini.o dis_int.o ena_int.o clr_int.o ras_int.o prb_int.o \
+		chg_ipm.o get_ipm.o
 
 exception = excini.o xsns_dpn.o
 

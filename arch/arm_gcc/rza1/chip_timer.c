@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: chip_timer.c 731 2016-04-03 03:07:35Z ertl-hiro $
+ *  $Id: chip_timer.c 777 2017-02-03 23:20:57Z ertl-hiro $
  */
 
 /*
@@ -53,15 +53,6 @@
 #include "target_timer.h"
 #include <sil.h>
 #include "rza1.h"
-
-/*
- *  タイマ割込み要求のクリア
- */
-Inline void
-target_hrt_int_clear()
-{
-	gicd_clear_pending(INTNO_OSTM0);
-}
 
 /*
  *  タイマの起動処理
@@ -87,7 +78,7 @@ target_hrt_initialize(intptr_t exinf)
 	/*
 	 *  タイマ割込み要求をクリアする．
 	 */
-	target_hrt_int_clear();
+	clear_int(INTNO_OSTM0);
 }
 
 /*
@@ -104,7 +95,7 @@ target_hrt_terminate(intptr_t exinf)
 	/*
 	 *  タイマ割込み要求をクリアする．
 	 */
-	target_hrt_int_clear();
+	clear_int(INTNO_OSTM0);
 }
 
 /*
@@ -127,7 +118,7 @@ target_hrt_set_event(HRTCNT hrtcnt)
 	 *  た場合には，割込みを発生させる．
 	 */
 	if (sil_rew_mem(OSTM_CNT(OSTM0_BASE)) - current >= cnt) {
-		gicd_set_pending(INTNO_OSTM0);
+		raise_int(INTNO_OSTM0);
 	}
 }
 
@@ -137,7 +128,7 @@ target_hrt_set_event(HRTCNT hrtcnt)
 void
 target_hrt_raise_event(void)
 {
-	gicd_set_pending(INTNO_OSTM0);
+	raise_int(INTNO_OSTM0);
 }
 
 /*
@@ -147,11 +138,6 @@ void
 target_hrt_handler(void)
 {
 	/*
-	 *  タイマ割込み要求をクリアする．
-	 */
-	target_hrt_int_clear();
-
-	/*
 	 *  高分解能タイマ割込みを処理する．
 	 */
 	signal_time();
@@ -160,15 +146,6 @@ target_hrt_handler(void)
  *  オーバランタイマドライバ
  */
 #ifdef TOPPERS_SUPPORT_OVRHDR
-
-/*
- *  オーバランタイマ割込み要求のクリア
- */
-Inline void
-target_ovrtimer_int_clear()
-{
-	gicd_clear_pending(INTNO_OSTM1);
-}
 
 /*
  *  オーバランタイマの初期化処理
@@ -184,7 +161,7 @@ target_ovrtimer_initialize(intptr_t exinf)
 	/*
 	 *  オーバランタイマ割込み要求をクリアする．
 	 */
-	target_ovrtimer_int_clear();
+	clear_int(INTNO_OSTM1);
 }
 
 /*
@@ -201,7 +178,7 @@ target_ovrtimer_terminate(intptr_t exinf)
 	/*
 	 *  オーバランタイマ割込み要求をクリアする．
 	 */
-	target_ovrtimer_int_clear();
+	clear_int(INTNO_OSTM1);
 }
 
 /*
@@ -217,11 +194,11 @@ target_ovrtimer_stop(void)
 	 */
 	sil_wrb_mem(OSTM_TT(OSTM1_BASE), OSTM_TT_STOP);
 
-	if (gicd_probe_pending(INTNO_OSTM1)) {
+	if (probe_int(INTNO_OSTM1)) {
 		/*
 		 *  割込み要求が発生している場合
 		 */
-		target_ovrtimer_int_clear();
+		clear_int(INTNO_OSTM1);
 		return(0U);
 	}
 	else {
@@ -238,7 +215,7 @@ target_ovrtimer_get_current(void)
 {
 	uint32_t	cnt;
 
-	if (gicd_probe_pending(INTNO_OSTM1)) {
+	if (probe_int(INTNO_OSTM1)) {
 		/*
 		 *  割込み要求が発生している場合
 		 */

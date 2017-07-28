@@ -1,5 +1,5 @@
 
-	TOPPERS/ASP3 Kernel（Release 3.1）without TECS
+	TOPPERS/ASP3 Kernel（Release 3.2）without TECS
 		Toyohashi Open Platform for Embedded Real-Time Systems/
 		Advanced Standard Profile Kernel
 

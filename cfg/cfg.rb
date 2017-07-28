@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: cfg.rb 111 2016-03-16 23:50:27Z ertl-hiro $
+#  $Id: cfg.rb 130 2016-07-31 16:30:35Z ertl-hiro $
 #
 
 if $0 == __FILE__
@@ -55,7 +55,7 @@ require "SRecord.rb"
 #  定数定義
 #
 # 共通
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 
 # cfg1_out関係
 CFG1_PREFIX        = "TOPPERS_cfg_"
@@ -525,7 +525,15 @@ end
 def BCOPY(fromAddress, toAddress, size)
   if !$romImage.nil?
     copyData = $romImage.get_data(fromAddress, size)
-    $romImage.set_data(toAddress, copyData)
+    if !copyData.nil?
+      $romImage.set_data(toAddress, copyData)
+    end
+  end
+end
+
+def BZERO(address, size)
+  if !$romImage.nil?
+    $romImage.set_data(address, "00" * size)
   end
 end
 

@@ -116,7 +116,12 @@
  */
 #define NVIC_INT_CTRL       0xe000ed04
 
-#define NVIC_PENDSVSET      0x10000000
+/*
+ *  割り込み制御と状態レジスタ
+ */
+#define NVIC_ICSR           0xE000ED04
+#define NVIC_PENDSVSET          (1 << 28)       /*  PenvSVC例外 */
+#define NVIC_PENDSTSET          (1 << 26)       /*  SYSTick例外 */
 
 /*
  *  システムハンドラーコントロールレジスタ

@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: gentest.rb 743 2016-04-10 16:00:40Z ertl-hiro $
+#  $Id: gentest.rb 796 2017-07-19 14:21:08Z ertl-hiro $
 # 
 
 #
@@ -123,6 +123,10 @@ class PUCode
       @count_var = "alarm#{$1}_count"
     when /^OVR$/
       @count_var = "overrun_count"
+    when /^ISR([0-9]*)$/
+      @count_var = "isr#{$1}_count"
+    when /^INTHDR([0-9]*)$/
+      @count_var = "inthdr#{$1}_count"
     when /^CPUEXC([0-9]*)$/
       @count_var = "cpuexc#{$1}_count"
     when /^EXTSVC([0-9]*)$/
@@ -186,6 +190,12 @@ class PUCode
     when /^OVR$/
       print("\nvoid\n")
       print("overrun_handler(ID tskid, intptr_t exinf)\n")
+    when /^ISR([0-9]*)$/
+      print("\nvoid\n")
+      print("isr#{$1}(intptr_t exinf)\n")
+    when /^INTHDR([0-9]*)$/
+      print("\nvoid\n")
+      print("inthdr#{$1}_handler(void)\n")
     when /^CPUEXC([0-9]*)$/
       print("\nvoid\n")
       print("cpuexc#{$1}_handler(void *p_excinf)\n")

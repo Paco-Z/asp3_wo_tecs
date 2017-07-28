@@ -58,6 +58,9 @@ test_flg1.h
 test_hrt1.c
 test_hrt1.cfg
 test_hrt1.h
+test_int1.c
+test_int1.cfg
+test_int1.h
 test_mutex.h
 test_mutex1.c
 test_mutex1.cfg

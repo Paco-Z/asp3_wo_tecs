@@ -24,8 +24,6 @@
 #define pabort_handler				_kernel_pabort_handler
 #define dabort_handler				_kernel_dabort_handler
 #define fiq_handler					_kernel_fiq_handler
-#define current_cpsr				_kernel_current_cpsr
-#define set_cpsr					_kernel_set_cpsr
 
 /*
  *  core_kernel_impl.c

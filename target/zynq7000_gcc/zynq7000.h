@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  @(#) $Id: zynq.h 1218 2017-04-25 07:05:23Z ertl-honda $
+ *  @(#) $Id: zynq7000.h 817 2017-07-25 06:33:36Z ertl-honda $
  */
 
 /*
@@ -46,8 +46,6 @@
  */
 #ifndef TOPPERS_ZYNQ_H
 #define TOPPERS_ZYNQ_H
-
-#include <sil.h>
 
 #if defined(BOARD_ZYBO)
 

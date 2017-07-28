@@ -231,7 +231,7 @@ lock_cpu(void)
 	 */
 	if ((IIPM_LOCK < iipm) || (IIPM_ENAALL == iipm)) {
 		set_basepri(IIPM_LOCK);
-        SCS_SYNC;
+		SCS_SYNC;
 	}
 	saved_iipm = iipm;
 	lock_flag = true;
@@ -268,14 +268,14 @@ unlock_cpu(void)
 Inline void
 lock_cpu_dsp(void)
 {
-    /*
-     * この時点では必ず割込み優先度全解除状態であるため，
-     * ・割込み優先度マスクをCPUロック状態
-     * ・割込み優先度マスクの保存値をIIPM_ENAALL
-     * を必ず実行する
-     */
-    set_basepri(IIPM_LOCK);
-    SCS_SYNC;
+	/*
+	 * この時点では必ず割込み優先度全解除状態であるため，
+	 * ・割込み優先度マスクをCPUロック状態
+	 * ・割込み優先度マスクの保存値をIIPM_ENAALL
+	 * を必ず実行する
+	 */
+	set_basepri(IIPM_LOCK);
+	SCS_SYNC;
 	saved_iipm = IIPM_ENAALL;
 	lock_flag = true;
 	/* クリティカルセクションの前後でメモリが書き換わる可能性がある */
@@ -352,7 +352,7 @@ t_set_ipm(PRI intpri)
 			set_basepri(IIPM_LOCK);
 		}
 	}
-    SCS_SYNC;
+	SCS_SYNC;
 }
 
 /*
@@ -384,7 +384,7 @@ t_get_ipm(void)
 /*
  *  スタートアップルーチン（start.S）
  */
-extern void start(void);
+extern void _kernel_start(void);
 
 /*
  *  最高優先順位タスクへのディスパッチ（core_support.S）
@@ -399,26 +399,26 @@ extern void _dispatch(void);
 Inline void
 dispatch(void)
 {
-    /*
-     * issue PendSV
-     * ICSR.PENDSVSET([28]) = 1
-     */
-    sil_orw((void *)0xE000ED04, (uint32_t)(0x10000000U));
-    unlock_cpu_dsp();
-    /* ここで _dispatchへジャンプ */
-    SCS_SYNC;
-    lock_cpu_dsp();
+	/*
+	 * issue PendSV
+	 * ICSR.PENDSVSET([28]) = 1
+	 */
+	sil_orw((void *)0xE000ED04, (uint32_t)(0x10000000U));
+	unlock_cpu_dsp();
+	/* ここで _dispatchへジャンプ */
+	SCS_SYNC;
+	lock_cpu_dsp();
 }
 
 Inline void
 request_dispatch(void)
 {
-    /*
-     * issue PendSV
-     * ICSR.PENDSVSET([28]) = 1
-     */
-    sil_orw((void *)0xE000ED04, (uint32_t)(0x10000000U));
-    /* ここでは必ずディスパッチャへジャンプしないため，CPUロック解除しない */
+	/*
+	 * issue PendSV
+	 * ICSR.PENDSVSET([28]) = 1
+	 */
+	sil_orw((void *)0xE000ED04, (uint32_t)(0x10000000U));
+	/* ここでは必ずディスパッチャへジャンプしないため，CPUロック解除しない */
 }
 
 /*
@@ -462,12 +462,12 @@ extern ER    ext_tsk(void);
 #define activate_context(p_tcb)                                         \
 {\
 	(p_tcb)->tskctxb.sp = (p_tcb)->p_tinib->tskinictxb.stk_bottom;	\
-    *(--((p_tcb)->tskctxb.sp)) = (uint32_t)EPSR_T; \
-    *(--((p_tcb)->tskctxb.sp)) = (uint32_t)(p_tcb)->p_tinib->task; \
-    *(--((p_tcb)->tskctxb.sp)) = (uint32_t)ext_tsk; \
-    (p_tcb)->tskctxb.sp -= 4; \
-    *(--((p_tcb)->tskctxb.sp)) = (uint32_t)(p_tcb)->p_tinib->exinf; \
-    (p_tcb)->tskctxb.sp -= 8; \
+	*(--((p_tcb)->tskctxb.sp)) = (uint32_t)EPSR_T; \
+	*(--((p_tcb)->tskctxb.sp)) = (uint32_t)(p_tcb)->p_tinib->task; \
+	*(--((p_tcb)->tskctxb.sp)) = (uint32_t)ext_tsk; \
+	(p_tcb)->tskctxb.sp -= 4; \
+	*(--((p_tcb)->tskctxb.sp)) = (uint32_t)(p_tcb)->p_tinib->exinf; \
+	(p_tcb)->tskctxb.sp -= 8; \
 	(p_tcb)->tskctxb.pc = (intptr_t)0xfffffffdU;	\
 }
 
@@ -514,22 +514,25 @@ define_inh(INHNO inhno, FP int_entry)
 extern const uint32_t	bitpat_cfgint[];
 
 /*
- *  割込み要求禁止フラグのセット
- *
- *  割込み属性が設定されていない割込み要求ラインに対して割込み要求禁止
- *  フラグをクリアしようとした場合には，falseを返す．
+ *  割込み属性の設定のチェック
  */
 Inline bool_t
-disable_int(INTNO intno)
+check_intno_cfg(INTNO intno)
 {
-	uint32_t tmp;
-
-	/*
-	 *  割込み属性が設定されていない場合
-	 */
 	if ((bitpat_cfgint[intno >> 5] & (1 << (intno & 0x1f))) == 0x00) {
 		return(false);
 	}
+	return(true);
+}
+
+/*
+ *  割込み要求禁止フラグのセット
+ *
+ */
+Inline void
+disable_int(INTNO intno)
+{
+	uint32_t tmp;
 
 	if (intno == IRQNO_SYSTICK) {
 		tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
@@ -540,28 +543,17 @@ disable_int(INTNO intno)
 		sil_wrw_mem((void *)((uint32_t *)NVIC_CLRENA0 + (tmp >> 5)),
 					(1 << (tmp & 0x1f)));
 	}
-    SCS_SYNC;
-
-	return(true);
+	SCS_SYNC;
 }
 
 /*
  *  割込み要求禁止フラグの解除
  *
- *  割込み属性が設定されていない割込み要求ラインに対して割込み要求禁止
- *  フラグをクリアしようとした場合には，falseを返す．
  */
-Inline bool_t
+Inline void
 enable_int(INTNO intno)
 {
 	uint32_t tmp;
-
-	/*
-	 *  割込み属性が設定されていない場合
-	 */
-	if ((bitpat_cfgint[intno >> 5] & (1 << (intno & 0x1f))) == 0x00) {
-		return(false);
-	}
 
 	if (intno == IRQNO_SYSTICK) {
 		tmp = sil_rew_mem((void *)SYSTIC_CONTROL_STATUS);
@@ -572,8 +564,85 @@ enable_int(INTNO intno)
 		sil_wrw_mem((void *)((uint32_t *)NVIC_SETENA0 + (tmp >> 5)),
 					(1 << (tmp & 0x1f)));
 	}
+}
 
+/*
+ *  割込み要求がクリアできる割込み番号の範囲の判定
+ */
+#define VALID_INTNO_CLRINT(intno) \
+				(IRQNO_SYSTICK <= (intno) && (intno) <= TMAX_INTNO)
+
+/*
+ *  割込み要求がクリアできる状態か？
+ */
+Inline bool_t
+check_intno_clear(INTNO intno)
+{
 	return(true);
+}
+
+/*
+ *  割込み要求のクリア
+ */
+Inline void
+clear_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		tmp = sil_rew_mem((void*)NVIC_ICSR);
+		tmp &= ~NVIC_PENDSTSET;
+		sil_wrw_mem((void*)NVIC_ICSR, tmp);
+	}else {
+		tmp = intno - 16;
+		sil_wrw_mem((void *)((uint32_t *)NVIC_ICER0 + (tmp >> 5)),
+					(1 << (tmp & 0x1f)));
+	}
+}
+
+/*
+ *  割込みが要求できる状態か？
+ */
+Inline bool_t
+check_intno_raise(INTNO intno)
+{
+	return(true);
+}
+
+/*
+ *  割込みの要求
+ */
+Inline void
+raise_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		tmp = sil_rew_mem((void*)NVIC_ICSR);
+		tmp |= NVIC_PENDSTSET;
+		sil_wrw_mem((void*)NVIC_ICSR, tmp);
+	}else {
+		tmp = intno - 16;
+		sil_wrw_mem((void *)((uint32_t *)NVIC_ISER0 + (tmp >> 5)),
+					(1 << (tmp & 0x1f)));
+	}
+}
+
+/*
+ *  割込み要求のチェック
+ */
+Inline bool_t
+probe_int(INTNO intno)
+{
+	uint32_t tmp;
+
+	if (intno == IRQNO_SYSTICK) {
+		return ((sil_rew_mem((void*)NVIC_ICSR) & NVIC_PENDSTSET) == NVIC_PENDSTSET);
+	}else {
+		tmp = intno - 16;
+		return ((sil_rew_mem((void *)NVIC_ISER0 + (tmp >> 5)) & (1 << (tmp & 0x1f)))
+		  == (1 << (tmp & 0x1f)));
+	}
 }
 
 /*

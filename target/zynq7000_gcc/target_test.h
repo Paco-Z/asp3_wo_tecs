@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_test.h 736 2016-04-04 23:50:03Z ertl-hiro $
+ *  $Id: target_test.h 814 2017-07-25 05:19:11Z ertl-honda $
  */
 
 /*
@@ -44,6 +44,14 @@
 
 #ifndef TOPPERS_TARGET_TEST_H
 #define TOPPERS_TARGET_TEST_H
+
+/*
+ *  サンプルプログラム／テストプログラムで使用する割込みに関する定義
+ */
+#define INTNO1				35U			/* USBからの割込み */
+#define INTNO1_INTATR		TA_ENAINT|TA_EDGE
+#define INTNO1_INTPRI		-15
+#define intno1_clear()
 
 /*
  *  コアで共通な定義（チップ依存部は飛ばす）

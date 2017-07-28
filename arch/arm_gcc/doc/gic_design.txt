@@ -2,15 +2,15 @@
 		TOPPERS/ASP3カーネル
 		GIC（ARM Generic Interrupt Controller）依存部 設計メモ
 
-		対応バージョン: Release 3.0.0
-		最終更新: 2016年1月16日
+		対応バージョン: Release 3.2.0
+		最終更新: 2017年3月27日
 
 ----------------------------------------------------------------------
  TOPPERS/ASP Kernel
      Toyohashi Open Platform for Embedded Real-Time Systems/
      Advanced Standard Profile Kernel
 
- Copyright (C) 2014-2016 by Embedded and Real-Time Systems Laboratory
+ Copyright (C) 2014-2017 by Embedded and Real-Time Systems Laboratory
              Graduate School of Information Science, Nagoya Univ., JAPAN
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -42,7 +42,7 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
- $Id: gic_design.txt 533 2016-01-15 23:29:33Z ertl-hiro $
+ $Id: gic_design.txt 787 2017-03-26 16:00:11Z ertl-hiro $
 ----------------------------------------------------------------------
 
 ○目次
@@ -53,9 +53,12 @@
 ・チップ依存のパラメータ
 	- アプリケーションから参照できるパラメータ
 	- カーネル内部で使用するパラメータ
-・GICにおける割込みハンドラおよびCPU例外ハンドラの出入口処理
-	- GICにおける割込みハンドラの出入口処理
-	- GICにおけるCPU例外ハンドラの出入口処理
+・GICにおける割込みハンドラの出入口処理
+	- 割込み要求のクリア
+	- 割込み優先度マスクの操作
+・GICにおけるCPU例外ハンドラの出入口処理
+
+★要修正
 
 ○参考文献
 
@@ -125,12 +128,23 @@ GICのCPUインタフェースおよびディストリビュータのベース�
 ARM11 MPCoreのDistributed Interrupt Controllerの場合には，このシンボル
 をマクロ定義する．
 
-○GICにおける割込みハンドラおよびCPU例外ハンドラの出入口処理
+○GICにおける割込みハンドラの出入口処理
 
-●GICにおける割込みハンドラの出入口処理
+irc_begin_intは，割込み優先度マスクを受け付けた割込み要求の割込み優先
+度に設定し，割込みハンドラの入口で必要なIRCの操作を行う．irc_end_intは，
+割込みハンドラの出口で必要なIRCの操作を行い，割込み優先度マスクを割込
+み処理前の状態に戻す．
 
-GICにおける割込みハンドラの出入口処理（irc_begin_intおよびirc_end_int）
-の実現方法には，いくつかのアプローチがある．
+●割込み要求のクリア
+
+GICでは，割込み要求ラインがエッジトリガである場合のトリガされた割込み
+要求のクリアはハードウェアで行われるため，割込みハンドラの出入口処理で
+行う必要はない．
+
+●割込み優先度マスクの操作
+
+GICにおける割込み優先度マスクの操作およびIRCに対する割込み処理の終了通
+知（EOIの発行）の実現方法には，いくつかのアプローチがある．
 
 【アプローチ1】
 
@@ -144,20 +158,20 @@ ALABEL(irc_begin_int)
 	 */
 	ldr		r1, =GICC_IAR
 	ldr		r3, [r1]
-	push	{r3}				/* irc_end_intで用いる情報を保存 */
+	str		r3, [sp]			/* irc_end_intで用いる情報を保存 */
 
 	/*
 	 *  割込み番号を返値としてリターンする．
 	 */
-	lsl		r0, r3, #22			/* 下位10ビットを取り出す */
-	lsr		r0, r0, #22
+	lsl		r4, r3, #22			/* 下位10ビットを取り出す */
+	lsr		r4, r4, #22
 	bx		lr
 
 ALABEL(irc_end_int)
 	/*
 	 *  EOIを発行してリターンする．
 	 */
-	pop		{r3}				/* irc_begin_intで保存した情報を復帰 */
+	ldr		r3, [sp]			/* irc_begin_intで保存した情報を復帰 */
 	ldr		r1, =GICC_EOIR		/* EOIレジスタへの書込み */
 	str		r3, [r1]
 	bx		lr
@@ -206,8 +220,8 @@ ALABEL(irc_begin_int)
 	/*
 	 *  割込み番号を返値としてリターンする．
 	 */
-	lsl		r0, r3, #22			/* 下位10ビットを取り出す */
-	lsr		r0, r0, #22
+	lsl		r4, r3, #22			/* 下位10ビットを取り出す */
+	lsr		r4, r4, #22
 	bx		lr
 
 ALABEL(irc_end_int)
@@ -250,7 +264,7 @@ ALABEL(irc_begin_int)
 	ldr		r2, [r1]
 	str		r0, [r1]			/* 新しい割込み優先度マスクをセットする */
 	DATA_SYNC_BARRIER			/* 割込み優先度マスクがセットされるのを待つ */
-	push	{r2}				/* irc_end_intで用いる情報を保存 */
+	str		r2, [sp]			/* irc_end_intで用いる情報を保存 */
 
 	/*
 	 *  EOIを発行する．
@@ -261,15 +275,15 @@ ALABEL(irc_begin_int)
 	/*
 	 *  割込み番号を返値としてリターンする．
 	 */
-	lsl		r0, r3, #22			/* 下位10ビットを取り出す */
-	lsr		r0, r0, #22
+	lsl		r4, r3, #22			/* 下位10ビットを取り出す */
+	lsr		r4, r4, #22
 	bx		lr
 
 ALABEL(irc_end_int)
 	/*
 	 *  割込み優先度マスクを元に戻してリターンする．
 	 */
-	pop		{r2}				/* irc_begin_intで保存した情報を復帰 */
+	ldr		r2, [sp]			/* irc_begin_intで保存した情報を復帰 */
 	ldr		r1, =GICC_PMR		/* 割込み優先度マスクを元に戻す */
 	str		r2, [r1]
 	bx		lr
@@ -277,7 +291,7 @@ ALABEL(irc_end_int)
 
 現在の実装では，アプローチ3を採用している．
 
-●GICにおけるCPU例外ハンドラの出入口処理
+○GICにおけるCPU例外ハンドラの出入口処理
 
 GICにおけるCPU例外ハンドラの入口処理（irc_begin_exc）では，CPU例外発生
 前の割込み優先度マスクをスタックに保存し，CPU例外ハンドラの入口処理
@@ -290,14 +304,14 @@ ALABEL(irc_begin_exc)
 	 */
 	ldr		r1, =GICC_PMR		/* 現在の割込み優先度を取得 */
 	ldr		r2, [r1]
-	push	{r2}				/* irc_end_excで用いる情報を保存 */
+	str		r2, [sp]			/* irc_end_excで用いる情報を保存 */
 	bx		lr
 ----------------------------------------
 ALABEL(irc_end_exc)
 	/*
 	 *  割込み優先度マスクを元に戻す．
 	 */
-	pop		{r2}				/* irc_begin_excで保存した情報を復帰 */
+	ldr		r2, [sp]			/* irc_begin_excで保存した情報を復帰 */
 	ldr		r1, =GICC_PMR		/* 割込み優先度マスクを元に戻す */
 	str		r2, [r1]
 	bx		lr

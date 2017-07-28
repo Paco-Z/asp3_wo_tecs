@@ -3,7 +3,7 @@
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2017 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: pass1.rb 126 2016-05-03 06:53:08Z ertl-hiro $
+#  $Id: pass1.rb 133 2017-03-26 05:37:50Z ertl-hiro $
 #
 
 #
@@ -167,11 +167,13 @@ def ReadSymvalTable
       next
     end
 
-    symvalCsv = CSV.open(symvalTableFileName)
+    symvalCsv = CSV.open(symvalTableFileName,
+						{ skip_blanks: true, skip_lines: /^#/ })
     symvalCsv.each do |record|
       # 変数名
       if record[0].nil?
-        error_exit("invalid variable name in `#{fileName}'")
+        error_exit("invalid variable name in " \
+						"`#{symvalTableFileName}:#{symvalCsv.to_io.lineno}'")
       end
 
       symbol = {}
@@ -234,6 +236,11 @@ class ConfigFile
   def getNextLine(withinApi)
     line = @cfgFile.gets
     return(nil) if line.nil?
+
+	line.encode!("UTF-16BE", "UTF-8",	# 不正なバイト列を除外する
+					:invalid => :replace,
+					:undef => :replace,
+					:replace => '?').encode!("UTF-8")
     @lineNo += 1
 
     line.chomp!
@@ -771,7 +778,13 @@ EOS
 #endif
 
 #include "#{CFG1_OUT_TARGET_H}"
-#include <limits.h>
+
+#if defined(SIL_ENDIAN_BIG) && defined(SIL_ENDIAN_LITTLE)
+#error Both SIL_ENDIAN_BIG and SIL_ENDIAN_LITTLE are defined.
+#endif
+#if !defined(SIL_ENDIAN_BIG) && !defined(SIL_ENDIAN_LITTLE)
+#error Neither SIL_ENDIAN_BIG nor SIL_ENDIAN_LITTLE is defined.
+#endif
 
 const uint32_t #{CFG1_MAGIC_NUM} = 0x12345678;
 const uint32_t #{CFG1_SIZEOF_SIGNED} = sizeof(signed_t);

@@ -3,7 +3,7 @@
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2017 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id: pass2.rb 105 2016-03-12 07:55:48Z ertl-hiro $
+#  $Id: pass2.rb 134 2017-06-23 11:34:26Z ertl-hiro $
 #
 
 #
@@ -153,6 +153,7 @@ module Cfg1Out
       if @objidValues[paramName].has_key?(param)
         value = @objidValues[paramName][param]
       else
+        apiDef = $apiDefinition[cfgInfo[:APINAME]]
         error("#{apiDef.has_key?(:KEYPAR) ? "E_NOEXS" : "E_ID"}: " \
 					"`#{param}' in #{cfgInfo[:APINAME]} is not defined", \
 					"#{cfgInfo[:_FILE_]}:#{cfgInfo[:_LINE_]}:")

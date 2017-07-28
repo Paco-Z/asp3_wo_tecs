@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task_manage.c 717 2016-03-31 07:03:53Z ertl-hiro $
+ *  $Id: task_manage.c 785 2017-03-26 06:22:30Z ertl-hiro $
  */
 
 /*
@@ -166,7 +166,8 @@ acre_tsk(const T_CTSK *pk_ctsk)
 	}
 	else {
 		if (stk == NULL) {
-			stk = kernel_malloc(ROUND_STK_T(stksz));
+			stksz = ROUND_STK_T(stksz);
+			stk = kernel_malloc(stksz);
 			tskatr |= TA_MEMALLOC;
 		}
 		if (stk == NULL) {
@@ -190,6 +191,9 @@ acre_tsk(const T_CTSK *pk_ctsk)
 			make_dormant(p_tcb);
 			if ((p_tcb->p_tinib->tskatr & TA_ACT) != 0U) {
 				make_active(p_tcb);
+				if (p_runtsk != p_schedtsk) {
+					dispatch();
+				}
 			}
 			ercd = TSKID(p_tcb);
 		}
@@ -367,27 +371,29 @@ get_tst(ID tskid, STAT *p_tskstat)
 	if (p_tcb->p_tinib->tskatr == TA_NOEXS) {
 		ercd = E_NOEXS;							/*［NGKI3617］*/
 	}
-	else if (TSTAT_DORMANT(tstat)) {			/*［NGKI3620］*/
-		*p_tskstat = TTS_DMT;
-	}
-	else if (TSTAT_SUSPENDED(tstat)) {
-		if (TSTAT_WAITING(tstat)) {
-			*p_tskstat = TTS_WAS;
+	else {
+		if (TSTAT_DORMANT(tstat)) {				/*［NGKI3620］*/
+			*p_tskstat = TTS_DMT;
+		}
+		else if (TSTAT_SUSPENDED(tstat)) {
+			if (TSTAT_WAITING(tstat)) {
+				*p_tskstat = TTS_WAS;
+			}
+			else {
+				*p_tskstat = TTS_SUS;
+			}
+		}
+		else if (TSTAT_WAITING(tstat)) {
+			*p_tskstat = TTS_WAI;
+		}
+		else if (p_tcb == p_runtsk) {
+			*p_tskstat = TTS_RUN;
 		}
 		else {
-			*p_tskstat = TTS_SUS;
+			*p_tskstat = TTS_RDY;
 		}
+		ercd = E_OK;
 	}
-	else if (TSTAT_WAITING(tstat)) {
-		*p_tskstat = TTS_WAI;
-	}
-	else if (p_tcb == p_runtsk) {
-		*p_tskstat = TTS_RUN;
-	}
-	else {
-		*p_tskstat = TTS_RDY;
-	}
-	ercd = E_OK;
 	unlock_cpu();
 
   error_exit:

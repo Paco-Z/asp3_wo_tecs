@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2004 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: core_support.S 733 2016-04-03 09:10:54Z ertl-hiro $
+ *  $Id: core_support.S 793 2017-07-03 04:49:27Z ertl-hiro $
  */
 
 /*
@@ -183,7 +183,7 @@ ALABEL(dispatcher)
 	 */
 	bl		log_dsp_enter
 #endif /* LOG_DSP_ENTER */
-	
+
 ALABEL(dispatcher_0)
 	/*
 	 *  このルーチンは，タスクコンテキスト・CPUロック状態・割込み優先度
@@ -219,9 +219,8 @@ ALABEL(dispatcher_1)
 	toppers_asm_custom_idle
 #else /* TOPPERS_CUSTOM_IDLE */
 	msr		cpsr_c, #CPSR_SVC_MODE	/* 割込みを許可（スーパバイザモード）*/
-ALABEL(dispatcher_2)
-	b		dispatcher_2			/* 割込み待ち */
 #endif /* TOPPERS_CUSTOM_IDLE */
+	b		dispatcher_1			/* 割込み待ち */
 
 /*
  *  カーネルの終了処理の呼出し
@@ -345,7 +344,7 @@ ALABEL(irq_handler_1)
 	cmp		r4, #TNUM_INHNO			/* TNUM_INHNOの値によってはエラーになる */
 #else /* TNUM_INHNO <= 256 || __TARGET_ARCH_ARM <= 6 */
 	movw	r3, #TNUM_INHNO
-	cmp		r4, r3			
+	cmp		r4, r3
 #endif /* TNUM_INHNO <= 256 || __TARGET_ARCH_ARM <= 6 */
 	bhs		irq_handler_2			/* スプリアス割込みなら */
 									/*  irq_handler_2に分岐 */
@@ -412,7 +411,7 @@ ALABEL(irq_handler_2)
 	ldr		r3, [r2]
 	subs	r3, r3, #1
 	str		r3, [r2]				/* 戻り先が非タスクコンテキストなら */
-	bne		irq_handler_3			/*				irq_handler_3に分岐 */
+	bne		irq_handler_5			/*				irq_handler_5に分岐 */
 
 	/*
 	 *  タスク用のスタックに戻す．
@@ -421,10 +420,25 @@ ALABEL(irq_handler_2)
 	mov   	sp, r3
 
 	/*
-	 *  ディスパッチが必要か判定する．
+	 *  p_runtskがNULLか判定する．
 	 */
 	ldr		r0, =p_runtsk			/* p_runtsk → r0 */
 	ldr		r0, [r0]
+	tst		r0, r0					/* p_runtskがNULLでなければ */
+	bne		irq_handler_3			/*		irq_handler_3に分岐 */
+
+	/*
+	 *  タスクのスタックに保存したスクラッチレジスタ等を捨てる．
+	 */
+	pop		{r0,r1}					/* スタックポインタの調整を元に戻す */
+	add		sp, sp, r1
+	add		sp, sp, #40				/* スクラッチレジスタを捨てる */
+	b		dispatcher_0
+
+	/*
+	 *  ディスパッチが必要か判定する．
+	 */
+ALABEL(irq_handler_3)
 	ldr		r1, =p_schedtsk			/* p_schedtsk → r1 */
 	ldr		r1, [r1]
 	teq		r0, r1					/* p_runtskとp_schedtskが同じなら */
@@ -433,8 +447,6 @@ ALABEL(irq_handler_2)
 	/*
 	 *  コンテキストを保存する．
 	 */
-	tst		r0, r0					/* p_runtskがNULLならdispatcher_0へ */
-	beq		dispatcher_0
 	stmfd	sp!, {r6-r11}			/* 非スクラッチレジスタの保存 */
 	str		sp, [r0,#TCB_sp]		/* スタックポインタを保存 */
 	adr		r1, ret_int_r			/* 実行再開番地を保存 */
@@ -447,6 +459,7 @@ ALABEL(ret_int_r)
 	 */
 	ldmfd	sp!, {r6-r11}			/* 非スクラッチレジスタの復帰 */
 
+ALABEL(irq_handler_4)
 #ifdef TOPPERS_SUPPORT_OVRHDR
 	/*
 	 *  オーバランタイマを動作開始する．
@@ -461,12 +474,10 @@ ALABEL(ret_int_r)
 	 *  移するようにする必要があるが，ARMはCPSRのビットによってCPUロッ
 	 *  ク状態を表しているため，CPSRを元に戻してリターンすればよい．
 	 */
-#ifndef TOPPERS_SUPPORT_OVRHDR
-ALABEL(irq_handler_4)
-#endif /* TOPPERS_SUPPORT_OVRHDR */
-ALABEL(irq_handler_3)
-	pop		{r0,r1}					/* スタックポインタの調整 */
+ALABEL(irq_handler_5)
+	pop		{r0,r1}					/* スタックポインタの調整を元に戻す */
 	add		sp, sp, r1
+
 #if __TARGET_ARCH_ARM < 6
 	ldmfd	sp!, {r0}				/* 戻り先のcpsrをspsrに設定 */
 	msr		spsr_cxsf, r0
@@ -476,16 +487,6 @@ ALABEL(irq_handler_3)
 	ldmfd	sp!, {r0-r5,r12,lr}
 	rfefd	sp!
 #endif /* __TARGET_ARCH_ARM < 6 */
-
-#ifdef TOPPERS_SUPPORT_OVRHDR
-ALABEL(irq_handler_4)
-	/*
-	 *  オーバランタイマを動作開始する．
-	 */
-	tst		r0, r0					/* p_runtskがNULLでない場合 */
-	blne	ovrtimer_start
-	b		irq_handler_3
-#endif /* TOPPERS_SUPPORT_OVRHDR */
 #endif /* OMIT_IRQ_HANDLER */
 
 /*
@@ -807,7 +808,7 @@ ALABEL(fiq_handler)
 	mov		r4, #EXCNO_FIQ
 	b		exc_handler_1
 #endif /* OMIT_FIQ_HANDLER */
-	
+
 ALABEL(end_exc_entry)
 
 /*
@@ -959,7 +960,7 @@ ALABEL(exc_handler_2)
 	ldr		r3, [r2]
 	subs	r3, r3, #1
 	str		r3, [r2]				/* 戻り先が非タスクコンテキストなら */
-	bne		exc_handler_3			/*				exc_handler_3に分岐 */
+	bne		exc_handler_5			/*				exc_handler_5に分岐 */
 
 	/*
 	 *  タスク用のスタックに戻す．
@@ -968,10 +969,25 @@ ALABEL(exc_handler_2)
 	mov		sp, r3
 
 	/*
-	 *  ディスパッチが必要か判定する．
+	 *  p_runtskがNULLか判定する．
 	 */
 	ldr		r0, =p_runtsk			/* p_runtsk → r0 */
 	ldr		r0, [r0]
+	tst		r0, r0					/* p_runtskがNULLでなければ */
+	bne		exc_handler_3			/*		exc_handler_3に分岐 */
+
+	/*
+	 *  タスクのスタックに保存したスクラッチレジスタ等を捨てる．
+	 */
+	pop		{r0,r1}					/* スタックポインタの調整を元に戻す */
+	add		sp, sp, r1
+	add		sp, sp, #48				/* スクラッチレジスタとCPU例外が発生した */
+	b		dispatcher_0			/*	状況を判断するための追加情報を捨てる */
+
+	/*
+	 *  ディスパッチが必要か判定する．
+	 */
+ALABEL(exc_handler_3)
 	ldr		r1, =p_schedtsk			/* p_schedtsk → r1 */
 	ldr		r1, [r1]
 	teq		r0, r1					/* p_runtskとp_schedtskが同じなら */
@@ -980,8 +996,6 @@ ALABEL(exc_handler_2)
 	/*
 	 *  コンテキストを保存する．
 	 */
-	tst		r0, r0					/* p_runtskがNULLならdispatcher_0へ */
-	beq		dispatcher_0
 	stmfd	sp!, {r6-r11}			/* 非スクラッチレジスタの保存 */
 	str		sp, [r0,#TCB_sp]		/* スタックポインタを保存 */
 	adr		r1, ret_exc_r			/* 実行再開番地を保存 */
@@ -994,6 +1008,7 @@ ALABEL(ret_exc_r)
 	 */
 	ldmfd	sp!, {r6-r11}			/* 非スクラッチレジスタの復帰 */
 
+ALABEL(exc_handler_4)
 #ifdef TOPPERS_SUPPORT_OVRHDR
 	/*
 	 *  オーバランタイマを動作開始する．
@@ -1008,13 +1023,11 @@ ALABEL(ret_exc_r)
 	 *  うにする必要があるが，ARMはCPSRのビットによってCPUロック状態を
 	 *  表しているため，CPSRを元に戻してリターンすればよい．
 	 */
-#ifndef TOPPERS_SUPPORT_OVRHDR
-ALABEL(exc_handler_4)
-#endif /* TOPPERS_SUPPORT_OVRHDR */
-ALABEL(exc_handler_3)
-	pop		{r0,r1}					/* スタックポインタの調整 */
+ALABEL(exc_handler_5)
+	pop		{r0,r1}					/* スタックポインタの調整を元に戻す */
 	add		sp, sp, r1
 	add		sp, sp, #8				/* スタック上の情報を捨てる */
+
 #if __TARGET_ARCH_ARM < 6
 	ldmfd	sp!, {r0}				/* 戻り先のcpsrをspsrに設定 */
 	msr		spsr_cxsf, r0
@@ -1024,16 +1037,6 @@ ALABEL(exc_handler_3)
 	ldmfd	sp!, {r0-r5,r12,lr}
 	rfefd	sp!
 #endif /* __TARGET_ARCH_ARM < 6 */
-
-#ifdef TOPPERS_SUPPORT_OVRHDR
-ALABEL(exc_handler_4)
-	/*
-	 *  オーバランタイマを動作開始する．
-	 */
-	tst		r0, r0					/* p_runtskがNULLでない場合 */
-	blne	ovrtimer_start
-	b		exc_handler_3
-#endif /* TOPPERS_SUPPORT_OVRHDR */
 
 /*
  *  カーネル管理外のCPU例外の出入口処理
@@ -1089,14 +1092,14 @@ ALABEL(nk_exc_handler_2)
 	ldr		r3, [r2]
 	subs	r3, r3, #1
 	str		r3, [r2]				/* 戻り先が非タスクコンテキストなら */
-	bne		exc_handler_3			/*				exc_handler_3に分岐 */
+	bne		exc_handler_5			/*				exc_handler_5に分岐 */
 
 	/*
 	 *  タスク用のスタックに戻す．
 	 */
 	pop		{r0,r3}
 	mov		sp, r3
-	b		exc_handler_3
+	b		exc_handler_5
 
 /*
  *  ステータスレジスタの操作関数
@@ -1108,14 +1111,14 @@ ALABEL(nk_exc_handler_2)
 
 	ATEXT
 	AALIGN(2)
-	AWEAK(current_cpsr)
-ALABEL(current_cpsr)
+	AWEAK(_kernel_current_cpsr)
+ALABEL(_kernel_current_cpsr)
 	mrs		r0, cpsr_cxsf
 	bx		lr
 
 	AALIGN(2)
-	AWEAK(set_cpsr)
-ALABEL(set_cpsr)
+	AWEAK(_kernel_set_cpsr)
+ALABEL(_kernel_set_cpsr)
 	msr		cpsr_cxsf, r0
 	bx		lr
 

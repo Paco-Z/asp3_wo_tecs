@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  $Id: target_test.h 736 2016-04-04 23:50:03Z ertl-hiro $
+ *  $Id: target_test.h 797 2017-07-19 14:22:39Z ertl-hiro $
  */
 
 /*
@@ -48,7 +48,7 @@
 #include "rza1.h"
 
 /*
- *  サンプルプログラムで使用する割込みに関する定義
+ *  サンプルプログラム／テストプログラムで使用する割込みに関する定義
  */
 #define INTNO1				INTNO_IRQ5
 #define INTNO1_INTATR		TA_ENAINT|TA_NEGEDGE

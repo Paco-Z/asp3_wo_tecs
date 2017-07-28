@@ -108,7 +108,7 @@ $kernelCfgC.append(<<EOS)
 __attribute__ ((section(".vector")))
 const FP _kernel_vector_table[] = {
     (FP)(TOPPERS_ISTKPT(_kernel_istack, ROUND_STK_T(DEFAULT_ISTKSZ))),   /* 0 The initial stack pointer */
-    (FP)start,                 /* 1 The reset handler */
+    (FP)_kernel_start,                 /* 1 The reset handler */
 EOS
 Array(2..14).each { |excno|
     if excno == 11
@@ -176,6 +176,7 @@ end
 $kernelCfgC.add
 $kernelCfgC.add("const uint32_t _kernel_bitpat_cfgint[#{bitpat_cfgint_num}] = {")
 Array(0..(bitpat_cfgint_num-1)).each { |num|
+    bitpat_cfgint = 0;
     Array((num*32)..((num*32)+31)).each { |inhno|
         inh = $cfgData[:DEF_INH].select { |k,v|
             (v[:inhno] == inhno)

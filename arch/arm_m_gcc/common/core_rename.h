@@ -39,5 +39,45 @@
 #define call_exit_kernel			_kernel_call_exit_kernel
 
 
+#ifdef TOPPERS_LABEL_ASM
+
+/*
+ *  core_kernel_impl.c
+ */
+#define _exc_tbl					__kernel_exc_tbl
+#define _vector_table				__kernel_vector_table
+#define _lock_flag					__kernel_lock_flag
+#define _saved_iipm					__kernel_saved_iipm
+#define _default_exc_handler		__kernel_default_exc_handler
+#define _default_int_handler		__kernel_default_int_handler
+#define _config_int					__kernel_config_int
+#define _core_initialize			__kernel_core_initialize
+#define _core_terminate				__kernel_core_terminate
+#define _bitpat_cfgint				__kernel_bitpat_cfgint
+#define _set_exc_int_priority		__kernel_set_exc_int_priority
+#define _enable_exc					__kernel_enable_exc
+#define _disable_exc				__kernel_disable_exc
+
+/*
+ *  core_support.S
+ */
+#define _core_int_entry				__kernel_core_int_entry
+#define _core_exc_entry				__kernel_core_exc_entry
+#define _ret_int					__kernel_ret_int
+#define _ret_int_r					__kernel_ret_int_r
+#define _ret_exc					__kernel_ret_exc
+#define _svc_handler				__kernel_svc_handler
+#define _svc_vector_tbl				__kernel_svc_vector_tbl
+#define _start_r					__kernel_start_r
+#define _dispatcher					__kernel_dispatcher
+#define _dispatch					__kernel_dispatch
+#define _dispatch_r					__kernel_dispatch_r
+#define _start_dispatch				__kernel_start_dispatch
+#define _exit_and_dispatch			__kernel_exit_and_dispatch
+#define _call_exit_kernel			__kernel_call_exit_kernel
+
+
+#endif /* TOPPERS_LABEL_ASM */
+
 
 #endif /* TOPPERS_CORE_RENAME_H */

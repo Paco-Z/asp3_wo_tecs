@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: core_sil.h 714 2016-03-31 05:52:19Z ertl-hiro $
+ *  $Id: core_sil.h 793 2017-07-03 04:49:27Z ertl-hiro $
  */
 
 /*
@@ -85,14 +85,14 @@ TOPPERS_set_cpsr(uint32_t cpsr)
 /*
  *  ステータスレジスタ（CPSR）の現在値の読出し
  */
-extern uint32_t current_cpsr(void);
-#define TOPPERS_current_cpsr()	current_cpsr()
+extern uint32_t _kernel_current_cpsr(void);
+#define TOPPERS_current_cpsr()	_kernel_current_cpsr()
 
 /*
  *  ステータスレジスタ（CPSR）の現在値の変更
  */
-extern void set_cpsr(uint32_t cpsr);
-#define TOPPERS_set_cpsr(cpsr)	current_cpsr(cpsr)
+extern void _kernel_set_cpsr(uint32_t cpsr);
+#define TOPPERS_set_cpsr(cpsr)	_kernel_set_cpsr(cpsr)
 
 #endif /* __thumb__ */
 

@@ -2,7 +2,7 @@
 		TOPPERS/ASP3カーネル without TECS
 		ユーザーズマニュアル
 
-		対応バージョン: Release 3.1
+		対応バージョン: Release 3.2.0
 		最終更新: 2017年7月4日
 
 このドキュメントは，TOPPERS/ASP3カーネル without TECSを使用するため

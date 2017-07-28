@@ -1,11 +1,8 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
- *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2008-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,94 +34,48 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: chip_kernel_impl.c 791 2017-07-02 18:46:36Z ertl-hiro $
+ *  $Id: test_int1.h 796 2017-07-19 14:21:08Z ertl-hiro $
  */
+
+/* 
+ *		割込み管理機能のテスト(1)
+ */
+
+#include <kernel.h>
 
 /*
- *		カーネルのチップ依存部（MPCore用）
+ *  ターゲット依存の定義
  */
-
-#include "kernel_impl.h"
-#include <sil.h>
-#include "arm.h"
+#include "target_test.h"
 
 /*
- *  チップ依存の初期化
+ *  優先度の定義
  */
-void
-chip_initialize(void)
-{
-	/*
-	 *  キャッシュをディスエーブル
-	 */
-	arm_disable_cache();
-
-	/*
-	 *  コア依存の初期化
-	 */
-	core_initialize();
-
-	/*
-	 *  MPCoreをSMPモードに設定
-	 */
-	mpcore_enable_smp();
-
-	/*
-	 *  SCUをイネーブル
-	 */
-	mpcore_enable_scu();
-
-	/*
-	 *  すべてのプロセッサをノーマルモードに
-	 */
-	sil_wrw_mem(MPCORE_SCU_CPUSTAT, 0x00U);
-
-	/*
-	 *  キャッシュをイネーブル
-	 */
-	arm_enable_cache();
-
-	/*
-	 * GICのディストリビュータの初期化
-	 */
-	gicd_initialize();
-
-	/*
-	 * GICのCPUインタフェースの初期化
-	 */
-	gicc_initialize();
-}
+#define HIGH_PRIORITY	9		/* 高優先度 */
+#define MID_PRIORITY	10		/* 中優先度 */
+#define LOW_PRIORITY	11		/* 低優先度 */
 
 /*
- *  チップ依存部の終了処理
+ *  ターゲットに依存する可能性のある定数の定義
  */
-void
-chip_terminate(void)
-{
-	extern void    software_term_hook(void);
-	void (*volatile fp)(void) = software_term_hook;
+#ifndef STACK_SIZE
+#define	STACK_SIZE		4096		/* タスクのスタックサイズ */
+#endif /* STACK_SIZE */
 
-	/*
-	 *  software_term_hookへのポインタを，一旦volatile指定のあるfpに代
-	 *  入してから使うのは，0との比較が最適化で削除されないようにするた
-	 *  めである．
-	 */
-	if (fp != 0) {
-		(*fp)();
-	}
+#ifndef TEST_TIME_CP
+#define TEST_TIME_CP	50000U		/* チェックポイント到達情報の出力時間 */
+#endif /* TEST_TIME_CP */
 
-	/*
-	 *  GICのCPUインタフェースの終了処理
-	 */
-	gicc_terminate();
+#ifndef TEST_TIME_PROC
+#define TEST_TIME_PROC	1000U		/* チェックポイントを通らない場合の時間 */
+#endif /* TEST_TIME_PROC */
 
-	/*
-	 *  GICのディストリビュータの終了処理
-	 */
-	gicd_terminate();
+/*
+ *  関数のプロトタイプ宣言
+ */
+#ifndef TOPPERS_MACRO_ONLY
 
-	/*
-	 *  コア依存の終了処理
-	 */
-	core_terminate();
-}
+extern void	task1(intptr_t exinf);
+extern void	isr1(intptr_t exinf);
+
+#endif /* TOPPERS_MACRO_ONLY */

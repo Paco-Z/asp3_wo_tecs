@@ -54,8 +54,11 @@
 /*
  *  サポートする機能の定義
  */
-#define TOPPERS_TARGET_SUPPORT_DIS_INT      /* dis_intをサポートする */
-#define TOPPERS_TARGET_SUPPORT_ENA_INT      /* ena_intをサポートする */
+#define TOPPERS_TARGET_SUPPORT_DIS_INT		/* dis_intをサポートする */
+#define TOPPERS_TARGET_SUPPORT_ENA_INT		/* ena_intをサポートする */
+#define TOPPERS_TARGET_SUPPORT_CLR_INT		/* clr_intをサポートする */
+#define TOPPERS_TARGET_SUPPORT_RAS_INT		/* ras_intをサポートする */
+#define TOPPERS_TARGET_SUPPORT_PRB_INT		/* prb_intをサポートする */
 
 #define TMAX_INTPRI		(-1)		/* 割込み優先度の最大値（最低値）*/
 

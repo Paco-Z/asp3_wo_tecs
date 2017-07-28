@@ -59,9 +59,9 @@
  */
 	ATEXT
 	AALIGN(2)
-	ATHUMB(start)
-	AGLOBAL(start)
-ALABEL(start)
+	ATHUMB(_kernel_start)
+	AGLOBAL(_kernel_start)
+ALABEL(_kernel_start)
 	cpsid f                 /* 割込みロック状態へ */
 
 #ifdef INIT_MSP

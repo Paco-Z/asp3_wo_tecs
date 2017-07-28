@@ -1,8 +1,8 @@
 
 		TOPPERS/ASP3カーネルの仕様概要
 
-		対応バージョン: Release 3.1
-		最終更新: 2016年4月3日
+		対応バージョン: Release 3.2
+		最終更新: 2017年7月20日
 
 このドキュメントは，TOPPERS/ASP3カーネル（TOPPERS/ASPカーネル Release
 3.X）の仕様概要について説明したものである．μITRON4.0仕様のスタンダード
@@ -18,7 +18,7 @@
      Toyohashi Open Platform for Embedded Real-Time Systems/
      Advanced Standard Profile Kernel
 
- Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
              Graduate School of Information Science, Nagoya Univ., JAPAN
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -50,7 +50,7 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
- $Id: asp_spec.txt 747 2016-05-13 08:18:21Z ertl-hiro $
+ $Id: asp_spec.txt 800 2017-07-19 23:34:23Z ertl-hiro $
 ----------------------------------------------------------------------
 
 ○目次
@@ -83,6 +83,7 @@
 	(3-12) 割込み要求ラインの属性の設定
 	(3-13) 非タスクコンテキスト用のスタック領域の設定
 	(3-14) 終了処理ルーチン
+	(3-15) 割込み要求を操作する機能
 ・μITRON4.0仕様に対する修正
 	(4-1) 非タスクコンテキストから呼び出せるサービスコールの名称
 	(4-2) ITRON標準データ型
@@ -475,6 +476,16 @@ JSPカーネルでは，kernel_exitという名称で，実質的にこの機能
 
 なお，JSPカーネルでは，独自の拡張機能としてこの機能をサポートしているが，
 静的APIの名称はVATT_TERとしている．
+
+(3-15) 割込み要求を操作する機能
+
+ASP3カーネル（Release 3.2以降）では，指定した割込み要求ラインに対して，
+割込み要求のクリア，割込みの要求，割込み要求のチェックを行うための機能
+をサポートしている．この機能のためのサービスコールは次の通りである．
+
+	clr_int		割込み要求のクリア
+	ras_int		割込みの要求
+	prb_int		割込み要求のチェック
 
 ○μITRON4.0仕様に対する変更
 

@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: t_stddef.h 458 2015-08-21 14:59:09Z ertl-hiro $
+ *  $Id: t_stddef.h 792 2017-07-02 18:48:34Z ertl-hiro $
  */
 
 /*
@@ -213,7 +213,8 @@ typedef	struct acvct {				/* アクセス許可ベクタ */
  *  仮定している．
  */
 #ifndef offsetof
-#define	offsetof(structure, field)	((uintptr_t) &(((structure *) 0)->field))
+#define	offsetof(structure, field) \
+		((uintptr_t)(((char *) &(((structure *) 0)->field)) - ((char *) 0)))
 #endif /* offsetof */
 
 #ifndef alignof

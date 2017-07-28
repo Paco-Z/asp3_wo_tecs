@@ -75,11 +75,13 @@ TOPPERS/ASP3カーネルでは，上の4つのチップをRZ/A1と総称し（�
 							→ ディストリビュータ制御レジスタ（GICD_CTLR）
 	……
 	※ 割込みアクティブセットレジスタは，割込みアクティブビットレジスタ
-	※ 割込みアクティブクリアレジスタは無い
-|	0xe8201d00		ppi_status		PPIステータスレジスタ
-|	0xe8201d04		spi_status0		SPIステータスレジスタ0
+	※ 割込みアクティブクリアレジスタは無い（GICv1相当）
+	0xe8201400		ICDIPR0	割込み優先度レジスタ0
+	……
+|	0xe8201d00		ppi_status		PPIステータスレジスタ（GICv1相当）
+|	0xe8201d04		spi_status0		SPIステータスレジスタ0（GICv1相当）
 |	……
-|	0xe8201d44		spi_status16	SPIステータスレジスタ16
+|	0xe8201d44		spi_status16	SPIステータスレジスタ16（GICv1相当）
 	0xe8201f00		ICDSGIR			ソフトウェア生成割込みレジスタ
 
 	0xe8202000		ICCICR	CPUインタフェース制御レジスタ

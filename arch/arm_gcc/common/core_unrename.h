@@ -25,8 +25,6 @@
 #undef pabort_handler
 #undef dabort_handler
 #undef fiq_handler
-#undef current_cpsr
-#undef set_cpsr
 
 /*
  *  core_kernel_impl.c

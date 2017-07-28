@@ -1,7 +1,7 @@
 #
 #		Makefileのコア依存部（ARM用）
 #
-#  $Id: Makefile.core 572 2016-02-01 14:40:09Z ertl-hiro $
+#  $Id: Makefile.core 755 2016-06-12 10:08:22Z ertl-hiro $
 #
 
 #
@@ -17,7 +17,9 @@ TOOLDIR = $(SRCDIR)/arch/$(TOOL)
 #
 #  GNU開発環境のターゲットアーキテクチャの定義
 #
-GCC_TARGET = arm-none-eabi
+ifndef GCC_TARGET
+	GCC_TARGET = arm-none-eabi
+endif
 
 #
 #  コンパイルオプション

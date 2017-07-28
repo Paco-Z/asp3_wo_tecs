@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  *
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  $Id: chip_kernel.h 727 2016-04-03 00:47:42Z ertl-hiro $
+ *  $Id: chip_kernel.h 799 2017-07-19 23:12:42Z ertl-hiro $
  */
 
 /*
@@ -65,10 +65,14 @@
 /*
  *  サポートできる機能の定義
  *
- *  ena_int／dis_intとオーバランハンドラをサポートすることができる．
+ *  ena_int／dis_int／clr_int／ras_int／prb_intとオーバランハンドラを
+ *  サポートすることができる．
  */
 #define TOPPERS_TARGET_SUPPORT_ENA_INT		/* ena_int */
 #define TOPPERS_TARGET_SUPPORT_DIS_INT		/* dis_int */
+#define TOPPERS_TARGET_SUPPORT_CLR_INT		/* clr_int */
+#define TOPPERS_TARGET_SUPPORT_RAS_INT		/* ras_int */
+#define TOPPERS_TARGET_SUPPORT_PRB_INT		/* prb_int */
 #define TOPPERS_TARGET_SUPPORT_OVRHDR
 
 /*

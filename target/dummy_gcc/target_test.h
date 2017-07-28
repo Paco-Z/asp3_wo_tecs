@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2013-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_test.h 364 2015-07-26 11:57:44Z ertl-hiro $
+ *  $Id: target_test.h 797 2017-07-19 14:22:39Z ertl-hiro $
  */
 
 /*
@@ -45,6 +45,9 @@
 #ifndef TOPPERS_TARGET_TEST_H
 #define TOPPERS_TARGET_TEST_H
 
+/*
+ *  サンプルプログラム／テストプログラムで使用するCPU例外に関する定義
+ */
 #define CPUEXC1					1
 #define RAISE_CPU_EXCEPTION		{ int *p = NULL; *p = 0; }
 #define PREPARE_RETURN_CPUEXC

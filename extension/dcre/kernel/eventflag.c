@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: eventflag.c 717 2016-03-31 07:03:53Z ertl-hiro $
+ *  $Id: eventflag.c 779 2017-03-10 11:06:20Z ertl-hiro $
  */
 
 /*
@@ -231,6 +231,7 @@ acre_flg(const T_CFLG *pk_cflg)
 		p_flgcb->flgptn = p_flgcb->p_flginib->iflgptn;
 		ercd = FLGID(p_flgcb);
 	}
+	unlock_cpu();
 
   error_exit:
 	LOG_ACRE_FLG_LEAVE(ercd);

@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: gic_kernel_impl.h 714 2016-03-31 05:52:19Z ertl-hiro $
+ *  $Id: gic_kernel_impl.h 799 2017-07-19 23:12:42Z ertl-hiro $
  */
 
 /*
@@ -66,9 +66,9 @@
 /*
  *  割込み番号の定義
  */
-#define GIC_INTNO_SGI0		0U
-#define GIC_INTNO_PPI0		16U
-#define GIC_INTNO_SPI0		32U
+#define GIC_INTNO_SGI0		UINT_C(0)
+#define GIC_INTNO_PPI0		UINT_C(16)
+#define GIC_INTNO_SPI0		UINT_C(32)
 
 /*
  *  割込み優先度の操作
@@ -270,6 +270,15 @@ gicd_probe_pending(INTNO intno)
 }
 
 /*
+ *  ソフトウェア生成割込み（SGI）の生成
+ */
+Inline void
+gicd_raise_sgi(INTNO intno)
+{
+	sil_wrw_mem(GICD_SGIR, (0x02000000 | intno));
+}
+
+/*
  *  割込みのコンフィグレーション
  */
 Inline void
@@ -278,10 +287,12 @@ gicd_config(INTNO intno, uint_t config)
 	uint_t		shift = (intno % 16) * 2;
 	uint32_t	reg;
 
-	reg = sil_rew_mem(GICD_ICFGR(intno / 16));
-	reg &= ~(0x03U << shift);
-	reg |= (config << shift);
-	sil_wrw_mem(GICD_ICFGR(intno / 16), reg);
+	if (intno >= GIC_INTNO_PPI0) {
+		reg = sil_rew_mem(GICD_ICFGR(intno / 16));
+		reg &= ~(0x03U << shift);
+		reg |= (config << shift);
+		sil_wrw_mem(GICD_ICFGR(intno / 16), reg);
+	}
 }
 
 /*
@@ -374,6 +385,15 @@ extern void gicd_terminate(void);
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
+ *  割込み属性の設定のチェック
+ */
+Inline bool_t
+check_intno_cfg(INTNO intno)
+{
+	return(intcfg_table[intno] != 0U);
+}
+
+/*
  *  割込み優先度マスクの設定
  */
 Inline void
@@ -393,35 +413,34 @@ t_get_ipm(void)
 
 /*
  *  割込み要求禁止フラグのセット
- *
- *  intnoで指定された割込み要求ラインに対する割込み要求禁止フラグのセッ
- *  トし，割込みを禁止する．割込み属性が設定されていない割込み要求ライ
- *  ンが指定された場合には，falseを返す．
  */
-Inline bool_t
+Inline void
 disable_int(INTNO intno)
 {
-	if (intcfg_table[intno] == 0U) {
-		return(false);
-	}
 	gicd_disable_int(intno);
-	return(true);
 }
 
 /* 
  *  割込み要求禁止フラグのクリア
- *
- *  intnoで指定された割込み要求ラインに対する割込み要求禁止フラグのクリ
- *  アし，割込みを許可する．割込み属性が設定されていない割込み要求ライ
- *  ンが指定された場合には，falseを返す．
  */
-Inline bool_t
+Inline void
 enable_int(INTNO intno)
 {
-	if (intcfg_table[intno] == 0U) {
-		return(false);
-	}
 	gicd_enable_int(intno);
+}
+
+/*
+ *  割込み要求がクリアできる割込み番号の範囲の判定
+ */
+#define VALID_INTNO_CLRINT(intno) \
+				(GIC_INTNO_PPI0 <= (intno) && (intno) <= TMAX_INTNO)
+
+/*
+ *  割込み要求がクリアできる状態か？
+ */
+Inline bool_t
+check_intno_clear(INTNO intno)
+{
 	return(true);
 }
 
@@ -432,6 +451,29 @@ Inline void
 clear_int(INTNO intno)
 {
 	gicd_clear_pending(intno);
+}
+
+/*
+ *  割込みが要求できる状態か？
+ */
+Inline bool_t
+check_intno_raise(INTNO intno)
+{
+	return(true);
+}
+
+/*
+ *  割込みの要求
+ */
+Inline void
+raise_int(INTNO intno)
+{
+	if (intno < GIC_INTNO_PPI0) {
+		gicd_raise_sgi(intno);
+	}
+	else {
+		gicd_set_pending(intno);
+	}
 }
 
 /*

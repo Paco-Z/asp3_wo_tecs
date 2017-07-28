@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.h 704 2016-03-29 12:27:19Z ertl-hiro $
+ *  $Id: target_kernel_impl.h 814 2017-07-25 05:19:11Z ertl-honda $
  */
 
 /*

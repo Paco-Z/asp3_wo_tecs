@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: arm_insn.h 694 2016-03-23 13:17:48Z ertl-hiro $
+ *  $Id: arm_insn.h 793 2017-07-03 04:49:27Z ertl-hiro $
  */
 
 /*
@@ -104,17 +104,23 @@ set_cpsr(uint32_t cpsr)
 /*
  *  Thumbモードではmrs/msr命令が使用できないため，関数として実現して，
  *  ARMモードに移行して実行する．
+ *
+ *  current_cpsrとset_cpsrは，__thumb__が定義されない場合にはヘッダファ
+ *  イル中で定義されるインライン関数になるため，core_rename.defに登録
+ *  せず，先頭の_kernel_を手書きしている．
  */
 
 /*
  *  ステータスレジスタ（CPSR）の現在値の読出し
  */
-extern uint32_t current_cpsr(void);
+extern uint32_t _kernel_current_cpsr(void);
+#define current_cpsr()	_kernel_current_cpsr()
 
 /*
  *  ステータスレジスタ（CPSR）の現在値の変更
  */
-extern void set_cpsr(uint32_t cpsr);
+extern void _kernel_set_cpsr(uint32_t cpsr);
+#define set_cpsr(cpsr)	_kernel_set_cpsr(cpsr)
 
 #endif /* __thumb__ */
 

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: dataqueue.c 717 2016-03-31 07:03:53Z ertl-hiro $
+ *  $Id: dataqueue.c 781 2017-03-10 23:31:33Z ertl-hiro $
  */
 
 /*
@@ -596,11 +596,13 @@ fsnd_dtq(ID dtqid, intptr_t data)
 	CHECK_UNL();
 	CHECK_ID(VALID_DTQID(dtqid));
 	p_dtqcb = get_dtqcb(dtqid);
-	CHECK_ILUSE(p_dtqcb->p_dtqinib->dtqcnt > 0U);
 
 	lock_cpu();
 	if (p_dtqcb->p_dtqinib->dtqatr == TA_NOEXS) {
 		ercd = E_NOEXS;
+	}
+	else if (!(p_dtqcb->p_dtqinib->dtqcnt > 0U)) {
+		ercd = E_ILUSE;
 	}
 	else {
 		force_send_data(p_dtqcb, data);
@@ -612,8 +614,8 @@ fsnd_dtq(ID dtqid, intptr_t data)
 				request_dispatch();
 			}
 		}
+		ercd = E_OK;
 	}
-	ercd = E_OK;
 	unlock_cpu();
 
   error_exit:

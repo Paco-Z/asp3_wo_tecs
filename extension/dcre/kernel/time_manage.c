@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: time_manage.c 542 2016-01-16 04:42:51Z ertl-hiro $
+ *  $Id: time_manage.c 782 2017-03-10 23:33:54Z ertl-hiro $
  */
 
 /*
@@ -259,6 +259,8 @@ check_nfyinfo(const T_NFYINFO *p_nfyinfo)
 			break;
 		}
 		switch (p_nfyinfo->nfymode & ~0x0fU) {
+		case 0:
+			break;
 		case TENFY_SETVAR:
 			CHECK_PAR(INTPTR_ALIGN(p_nfyinfo->enfy.setvar.p_var));
 			CHECK_PAR(INTPTR_NONNULL(p_nfyinfo->enfy.setvar.p_var));
@@ -331,7 +333,7 @@ notify_handler(intptr_t exinf)
 							p_nfyinfo->nfy.setflg.flgptn);
 		break;
 	case TNFY_SNDDTQ:
-		ercd = snd_dtq(p_nfyinfo->nfy.snddtq.dtqid,
+		ercd = psnd_dtq(p_nfyinfo->nfy.snddtq.dtqid,
 							p_nfyinfo->nfy.snddtq.data);
 		break;
 	default:
@@ -363,7 +365,7 @@ notify_handler(intptr_t exinf)
 							p_nfyinfo->enfy.setflg.flgptn);
 			break;
 		case TENFY_SNDDTQ:
-			(void) snd_dtq(p_nfyinfo->enfy.snddtq.dtqid, (intptr_t) ercd);
+			(void) psnd_dtq(p_nfyinfo->enfy.snddtq.dtqid, (intptr_t) ercd);
 			break;
 		default:
 			break;
