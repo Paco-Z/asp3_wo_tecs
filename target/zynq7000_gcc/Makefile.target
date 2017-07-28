@@ -14,8 +14,8 @@ TOOL = gcc
 
 #  ボード名
 ifeq "$(strip $(BOARD))" ""
- #BOARD = ZYBO
- BOARD = ARDUZYNQ
+ BOARD = ZYBO
+ #BOARD = ARDUZYNQ
 endif
 
 #
