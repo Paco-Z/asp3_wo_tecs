@@ -1,0 +1,5 @@
+E_PACKAGE asp3_gr_lychee_gcc
+VERSION %date
+
+INCLUDE ../../MANIFEST
+INCLUDE ../../arch/arm_gcc/MANIFEST
