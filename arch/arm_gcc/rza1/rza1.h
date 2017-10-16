@@ -162,7 +162,7 @@
  */
 #ifdef TOPPERS_RZA1H
 #define TNUM_SIOP  8
-#elif defined(TOPPERS_RZ_A1L)
+#elif defined(TOPPERS_RZA1L)
 #define TNUM_SIOP  5
 #endif /* TOPPERS_RZA1H */
 
