@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_stddef.h 720 2016-04-01 22:16:17Z ertl-hiro $
+ *  $Id: target_stddef.h 914 2018-03-07 10:16:16Z ertl-hiro $
  */
 
 /*
@@ -65,7 +65,7 @@
 #include "tool_stddef.h"
 
 /*
- *  チッブ依存で共通な定義
+ *  チッブで共通な定義
  */
 #include "chip_stddef.h"
 

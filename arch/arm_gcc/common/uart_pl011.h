@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,35 +36,19 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: uart_pl011.h 509 2016-01-12 06:06:14Z ertl-hiro $
+ *  $Id: uart_pl011.h 359 2015-07-26 10:27:20Z ertl-hiro $
  */
 
 /*
- *		ARM PrimCell UART（PL011）用 簡易SIOドライバ
+ *		ARM PrimCell UART（PL011）に関する定義と簡易SIOドライバ
  */
 
 #ifndef TOPPERS_UART_PL011_H
 #define TOPPERS_UART_PL011_H
 
-#include <sil.h>
-
 /*
- *  シリアルI/Oポート数の定義
+ *		ARM PrimCell UART（PL011）に関する定義
  */
-#define TNUM_SIOP		1		/* サポートするシリアルI/Oポートの数 */
-
-#ifndef TOPPERS_MACRO_ONLY
-
-/*
- *  シリアルI/Oポート管理ブロックの定義
- */
-typedef struct sio_port_control_block	SIOPCB;
-
-/*
- *  コールバックルーチンの識別番号
- */
-#define SIO_RDY_SND		1U		/* 送信可能コールバック */
-#define SIO_RDY_RCV		2U		/* 受信通知コールバック */
 
 /*
  *  UARTレジスタの番地の定義
@@ -111,6 +94,30 @@ typedef struct sio_port_control_block	SIOPCB;
  */
 #define UART_IMSC_RXIM	UINT_C(0x0010)		/* 受信割込みマスク */
 #define UART_IMSC_TXIM	UINT_C(0x0020)		/* 送信割込みマスク */
+
+#ifdef TOPPERS_OMIT_TECS
+/*
+ *		ARM PrimCell UART（PL011）用 簡易SIOドライバ
+ */
+#include <sil.h>
+
+/*
+ *  SIOポート数の定義
+ */
+#define TNUM_SIOP		1		/* サポートするSIOポートの数 */
+
+/*
+ *  コールバックルーチンの識別番号
+ */
+#define SIO_RDY_SND		1U		/* 送信可能コールバック */
+#define SIO_RDY_RCV		2U		/* 受信通知コールバック */
+
+#ifndef TOPPERS_MACRO_ONLY
+
+/*
+ *  SIOポート管理ブロックの定義
+ */
+typedef struct sio_port_control_block	SIOPCB;
 
 /*
  *  プリミティブな送信／受信関数
@@ -167,44 +174,45 @@ extern void		uart_pl011_initialize(void);
 extern void		uart_pl011_isr(void);
 
 /*
- *  シリアルI/Oポートのオープン
+ *  SIOポートのオープン
  */
 extern SIOPCB	*uart_pl011_opn_por(ID siopid, intptr_t exinf);
 
 /*
- *  シリアルI/Oポートのクローズ
+ *  SIOポートのクローズ
  */
 extern void		uart_pl011_cls_por(SIOPCB *siopcb);
 
 /*
- *  シリアルI/Oポートへの文字送信
+ *  SIOポートへの文字送信
  */
 extern bool_t	uart_pl011_snd_chr(SIOPCB *siopcb, char c);
 
 /*
- *  シリアルI/Oポートからの文字受信
+ *  SIOポートからの文字受信
  */
 extern int_t	uart_pl011_rcv_chr(SIOPCB *siopcb);
 
 /*
- *  シリアルI/Oポートからのコールバックの許可
+ *  SIOポートからのコールバックの許可
  */
 extern void		uart_pl011_ena_cbr(SIOPCB *siopcb, uint_t cbrtn);
 
 /*
- *  シリアルI/Oポートからのコールバックの禁止
+ *  SIOポートからのコールバックの禁止
  */
 extern void		uart_pl011_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
 
 /*
- *  シリアルI/Oポートからの送信可能コールバック
+ *  SIOポートからの送信可能コールバック
  */
 extern void		uart_pl011_irdy_snd(intptr_t exinf);
 
 /*
- *  シリアルI/Oポートからの受信通知コールバック
+ *  SIOポートからの受信通知コールバック
  */
 extern void		uart_pl011_irdy_rcv(intptr_t exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */
+#endif /* TOPPERS_OMIT_TECS */
 #endif /* TOPPERS_UART_PL011_H */

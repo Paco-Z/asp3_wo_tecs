@@ -20,7 +20,7 @@
 #define target_ovrtimer_handler		_kernel_target_ovrtimer_handler
 
 /*
- *  trace_config.c
+ *  tTraceLog.c
  */
 #define log_dsp_enter				_kernel_log_dsp_enter
 #define log_dsp_leave				_kernel_log_dsp_leave

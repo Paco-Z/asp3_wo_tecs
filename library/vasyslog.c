@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: vasyslog.c 127 2014-05-17 12:20:22Z ertl-hiro $
+ *  $Id: vasyslog.c 909 2018-03-05 05:46:33Z ertl-hiro $
  */
 
 /*
@@ -50,18 +50,15 @@
 #ifndef TOPPERS_OMIT_SYSLOG
 
 void
-syslog(uint_t prio, const char *format, ...)
+tt_syslog(SYSLOG *p_logbuf, const char *format, va_list ap)
 {
-	SYSLOG	logbuf;
-	va_list	ap;
 	uint_t	i;
 	char	sz;
 	char	c;
 
-	logbuf.logtype = LOG_TYPE_COMMENT;
-	logbuf.logpar[0] = (LOGPAR) format;
+	p_logbuf->logtype = LOG_TYPE_COMMENT;
+	p_logbuf->logpar[0] = (LOGPAR) format;
 	i = 1U;
-	va_start(ap, format);
 
 	while ((c = *format++) != '\0' && i < TNUM_LOGPAR) {
 		if (c != '%') {
@@ -79,27 +76,27 @@ syslog(uint_t prio, const char *format, ...)
 		}
 		switch (c) {
 		case 'd':
-			logbuf.logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, long_t)
-							   : (sz == 't') ? (LOGPAR) va_arg(ap, int32_t)
-							   : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
-							   : (LOGPAR) va_arg(ap, int_t);
+			p_logbuf->logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, long_t)
+								  : (sz == 't') ? (LOGPAR) va_arg(ap, int32_t)
+								  : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
+								  : (LOGPAR) va_arg(ap, int_t);
 			break;
 		case 'u':
 		case 'x':
 		case 'X':
-			logbuf.logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, ulong_t)
-							   : (sz == 't') ? (LOGPAR) va_arg(ap, uint32_t)
-							   : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
-							   : (LOGPAR) va_arg(ap, uint_t);
+			p_logbuf->logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, ulong_t)
+								  : (sz == 't') ? (LOGPAR) va_arg(ap, uint32_t)
+								  : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
+								  : (LOGPAR) va_arg(ap, uint_t);
 			break;
 		case 'p':
-			logbuf.logpar[i++] = (LOGPAR) va_arg(ap, void *);
+			p_logbuf->logpar[i++] = (LOGPAR) va_arg(ap, void *);
 			break;
 		case 'c':
-			logbuf.logpar[i++] = (LOGPAR) va_arg(ap, int);
+			p_logbuf->logpar[i++] = (LOGPAR) va_arg(ap, int);
 			break;
 		case 's':
-			logbuf.logpar[i++] = (LOGPAR) va_arg(ap, const char *);
+			p_logbuf->logpar[i++] = (LOGPAR) va_arg(ap, const char *);
 			break;
 		case '\0':
 			format--;
@@ -108,8 +105,6 @@ syslog(uint_t prio, const char *format, ...)
 			break;
 		}
 	}
-	va_end(ap);
-	(void) syslog_wri_log(prio, &logbuf);
 }
 
 #endif /* TOPPERS_OMIT_SYSLOG */

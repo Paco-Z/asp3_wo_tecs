@@ -4,7 +4,7 @@
 #  TOPPERS Software
 #      Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,9 +36,10 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: makerelease.rb 567 2016-01-30 00:49:03Z ertl-hiro $
+#  $Id: makerelease.rb 852 2017-11-04 16:19:49Z ertl-hiro $
 # 
 
+Encoding.default_external = 'utf-8'
 require "shell"
 
 #

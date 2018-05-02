@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *  Copyright (C) 2007-2010 by Industrial Technology Institute,
  *              Miyagi Prefectural Government, JAPAN
@@ -304,6 +304,24 @@ xuartps_init()
  */
 
 /*
+ *  Initalize serial port
+ */
+void
+sio_initialize(intptr_t exinf)
+{
+	xuartps_init();
+}
+
+/*
+ *  Terminate serial port
+ */
+void
+sio_terminate(intptr_t exinf)
+{
+	
+}
+
+/*
  * Open the serial port
  */
 SIOPCB *
@@ -427,4 +445,46 @@ sio_dis_cbr(SIOPCB *siopcb, uint_t cbrtn)
 		xuartps_disable_rcv(siopcb);
 	}
 #endif /* XUARTPS_POLLING_MODE */
+}
+
+/*
+ *		システムログの低レベル出力（本来は別のファイルにすべき）
+ */
+
+/*
+ *  低レベル出力用のSIOポート管理ブロック
+ */
+static SIOPCB	*p_siopcb_target_fput;
+
+/*
+ *  SIOポートの初期化
+ */
+void
+target_fput_initialize(void)
+{
+	p_siopcb_target_fput = sio_opn_por(SIOPID_FPUT, 0);
+}
+
+/*
+ *  SIOポートへのポーリング出力
+ */
+static void
+zynq_uart_fput(char c)
+{
+	/*
+	 *  送信できるまでポーリング
+	 */
+	while (!(sio_snd_chr(p_siopcb_target_fput, c))) ;
+}
+
+/*
+ *  SIOポートへの文字出力
+ */
+void
+target_fput_log(char c)
+{
+	if (c == '\n') {
+		zynq_uart_fput('\r');
+	}
+	zynq_uart_fput(c);
 }

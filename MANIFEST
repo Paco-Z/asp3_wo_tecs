@@ -1,5 +1,5 @@
 PACKAGE asp3
-VERSION 3.2.0
+VERSION 3.3.1
 
 configure.rb
 MANIFEST
@@ -83,21 +83,51 @@ kernel/time_manage.c
 kernel/wait.c
 kernel/wait.h
 
-syssvc/banner.c
-syssvc/banner.cfg
-syssvc/banner.h
-syssvc/histogram.c
+tecs_kernel/init_tecs.c
+tecs_kernel/kernel.cdl
+tecs_kernel/tAlarmNotifier.c
+tecs_kernel/tAlarmNotifier_inline.h
+tecs_kernel/tCyclicNotifier.c
+tecs_kernel/tCyclicNotifier_inline.h
+tecs_kernel/tDataqueue_inline.h
+tecs_kernel/tEventflag_inline.h
+tecs_kernel/tFixedSizeMemoryPool_inline.h
+tecs_kernel/tISR.c
+tecs_kernel/tInitializeRoutine.c
+tecs_kernel/tInterruptRequest_inline.h
+tecs_kernel/tKernel_inline.h
+tecs_kernel/tMutex_inline.h
+tecs_kernel/tPriorityDataqueue_inline.h
+tecs_kernel/tSemaphore_inline.h
+tecs_kernel/tTask.c
+tecs_kernel/tTask_inline.h
+tecs_kernel/tTerminateRoutine.c
+tecs_kernel/tecs_kernel.h
+
 syssvc/histogram.h
-syssvc/logtask.c
-syssvc/logtask.cfg
-syssvc/logtask.h
-syssvc/serial.c
-syssvc/serial.cfg
 syssvc/serial.h
-syssvc/syslog.c
-syssvc/syslog.cfg
 syssvc/syslog.h
-syssvc/test_svc.c
+syssvc/tHistogram.c
+syssvc/tHistogram.cdl
+syssvc/tHistogram.h
+syssvc/tHistogramAdapter.c
+syssvc/tHistogramAdapter.cdl
+syssvc/tBanner.cdl
+syssvc/tBannerMain.c
+syssvc/tLogTask.cdl
+syssvc/tLogTaskMain.c
+syssvc/tSerialAdapter.c
+syssvc/tSerialAdapter.cdl
+syssvc/tSerialPort.cdl
+syssvc/tSerialPortMain.c
+syssvc/tSysLog.c
+syssvc/tSysLog.cdl
+syssvc/tSysLogAdapter.c
+syssvc/tSysLogAdapter.cdl
+syssvc/tTestService.c
+syssvc/tTestService.cdl
+syssvc/tTestServiceAdapter.c
+syssvc/tTestServiceAdapter.cdl
 syssvc/test_svc.h
 
 library/log_output.c
@@ -107,10 +137,9 @@ library/vasyslog.c
 
 arch/gcc/tool_stddef.h
 
-arch/logtrace/trace_config.c
-arch/logtrace/trace_config.cfg
-arch/logtrace/trace_config.h
-arch/logtrace/trace_dump.c
+arch/tracelog/trace_log.h
+arch/tracelog/tTraceLog.c
+arch/tracelog/tTraceLog.cdl
 
 utils/applyrename.rb
 utils/genrename.rb
@@ -119,8 +148,13 @@ utils/makerelease.rb
 
 sample/Makefile
 sample/sample1.c
+sample/sample1.cdl
 sample/sample1.cfg
 sample/sample1.h
+sample/tSample2.c
+sample/tSample2.cdl
+sample/tSample2.cfg
+sample/tSample2.h
 
 INCLUDE cfg/MANIFEST
 INCLUDE test/MANIFEST

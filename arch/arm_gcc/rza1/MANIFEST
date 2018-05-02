@@ -16,3 +16,5 @@ chip_timer.h
 chip_unrename.h
 rza1.h
 scif.h
+tSCIF.c
+tSCIF.cdl

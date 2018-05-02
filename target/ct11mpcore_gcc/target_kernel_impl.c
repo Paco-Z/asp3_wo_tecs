@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2007-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.c 791 2017-07-02 18:46:36Z ertl-hiro $
+ *  $Id: target_kernel_impl.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -45,7 +45,6 @@
 #include "kernel_impl.h"
 #include <sil.h>
 #include "arm.h"
-#include "uart_pl011.h"
 
 /*
  *  カーネル動作時のメモリマップと関連する定義
@@ -62,14 +61,12 @@
 /*
  *  MMUへの設定属性（第1レベルディスクリプタ）
  */
-#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX001|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB11)
-#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX000|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB01|ARMV6_MMU_DSCR1_NOEXEC)
-#define MMU_ATTR_VECTOR	(ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX001|ARM_MMU_DSCR1_AP11 \
+#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX001 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB11)
+#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX000 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB01 \
+							|ARMV6_MMU_DSCR1_NOEXEC)
+#define MMU_ATTR_VECTOR	(ARM_MMU_DSCR1_TEX001|ARMV6_MMU_DSCR1_AP011 \
 							|ARM_MMU_DSCR1_CB11)
 
 /*
@@ -119,70 +116,21 @@ const uint_t arm_tnum_memory_area
 					= sizeof(arm_memory_area) / sizeof(ARM_MMU_CONFIG);
 
 /*
- *  UARTからのポーリング出力
+ *  システムログの低レベル出力のための初期化
  */
-static void
-ct11mpcore_uart_fput(char c)
-{
-	/*
-	 *  送信バッファが空くまでポーリング
-	 */
-	while (!(uart_pl011_putready(FPUT_UART_BASE))) ;
-
-	/*
-	 *  送信する文字の書込み
-	 */
-	uart_pl011_putchar(FPUT_UART_BASE, c);
-}
+#ifndef TOPPERS_OMIT_TECS
 
 /*
- *  システムログの低レベル出力のための文字出力
+ *  セルタイプtPutLogCT11MPCore内に実装されている関数を直接呼び出す．
  */
-void
-target_fput_log(char c)
-{
-	if (c == '\n') {
-		ct11mpcore_uart_fput('\r');
-	}
-	ct11mpcore_uart_fput(c);
-}
+extern void	tPutLogCT11MPCore_initialize(void);
 
-/*
- *  UARPからのポーリング出力のための初期化
- */
-static void
-ct11mpcore_uart_initialize(void)
-{
-	/*
-	 *  UARTをディスエーブル
-	 */
-	sil_wrw_mem(UART_CR(FPUT_UART_BASE), 0U);
+#else /* TOPPERS_OMIT_TECS */
 
-	/*
-	 *  エラーフラグをクリア
-	 */
-    sil_wrw_mem(UART_ECR(FPUT_UART_BASE), 0U);
+extern void	sio_initialize(void);
+extern void	target_fput_initialize(void);
 
-	/*
-	 *  FIFOを空にする
-	 */
-	while (uart_pl011_getready(FPUT_UART_BASE)) {
-		(void) uart_pl011_getchar(FPUT_UART_BASE);
-	}
-
-	/*
-	 *  ボーレートと通信規格を設定
-	 */
-	sil_wrw_mem(UART_IBRD(FPUT_UART_BASE), EB_UART_IBRD_38400);
-	sil_wrw_mem(UART_FBRD(FPUT_UART_BASE), EB_UART_FBRD_38400);
-	sil_wrw_mem(UART_LCR_H(FPUT_UART_BASE), UART_LCR_H_WLEN8);
-		
-	/*
-	 *  UARTをイネーブル
-	 */
-	sil_wrw_mem(UART_CR(FPUT_UART_BASE),
-						UART_CR_UARTEN|UART_CR_TXE|UART_CR_RXE);
-}
+#endif /* TOPPERS_OMIT_TECS */
 
 /*
  *  ターゲット依存の初期化
@@ -212,7 +160,12 @@ target_initialize(void)
 	/*
 	 *  UARTを初期化
 	 */
-	ct11mpcore_uart_initialize();
+#ifndef TOPPERS_OMIT_TECS
+	tPutLogCT11MPCore_initialize();
+#else /* TOPPERS_OMIT_TECS */
+	sio_initialize();
+	target_fput_initialize();
+#endif /* TOPPERS_OMIT_TECS */
 }
 
 /*

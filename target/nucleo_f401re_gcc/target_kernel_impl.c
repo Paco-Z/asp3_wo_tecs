@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -56,14 +56,26 @@ extern void SystemInit(void);
 extern void SystemClock_Config(void);
 
 /*
- *  バーナ出力用のUARTの初期化
- */
-static void usart_early_init(void);
-
-/*
  *  エラー時の処理
  */
 extern void Error_Handler(void);
+
+/*
+ *  システムログの低レベル出力のための初期化
+ */
+
+#ifndef TOPPERS_OMIT_TECS
+/*
+ *  セルタイプtPutLogTarget内に実装されている関数を直接呼び出す．
+ */
+extern void	tPutLogTarget_initialize(void);
+
+#else /* TOPPERS_OMIT_TECS */
+
+extern void	sio_initialize(void);
+extern void	target_fput_initialize(void);
+
+#endif /* TOPPERS_OMIT_TECS */
 
 /*
  *  起動時のハードウェア初期化処理
@@ -81,26 +93,11 @@ hardware_init_hook(void) {
 }
 
 /*
- *  cfgのpass3でエラーにならないように
- */
-extern const ID _kernel_tmax_tskid;
-extern const ID _kernel_tmax_semid;
-extern const ID _kernel_tmax_flgid;
-extern const ID _kernel_tmax_dtqid;
-
-volatile ID dummy;
-
-/*
  * ターゲット依存部 初期化処理
  */
 void
 target_initialize(void)
 {
-	dummy = _kernel_tmax_tskid;
-	dummy = _kernel_tmax_semid;
-	dummy = _kernel_tmax_flgid;
-	dummy = _kernel_tmax_dtqid;
-
 	/*
 	 *  HALによる初期化
 	 *  HAL_Init() : stm32f4xx_hal.c の内容から必要な初期化のみ呼び出す．
@@ -131,7 +128,13 @@ target_initialize(void)
 	/*
 	 *  バーナー出力用のシリアル初期化
 	 */
-	usart_early_init();
+	usart_low_init();
+#ifndef TOPPERS_OMIT_TECS
+	tPutLogTarget_initialize();
+#else /* TOPPERS_OMIT_TECS */
+	sio_initialize();
+	target_fput_initialize();
+#endif /* TOPPERS_OMIT_TECS */
 }
 
 /*
@@ -143,40 +146,6 @@ target_exit(void)
 	/* チップ依存部の終了処理 */
 	core_terminate();
 	while(1);
-}
-
-static UART_HandleTypeDef UartHandle;
-
-void
-usart_early_init()
-{
-	usart_low_init();
-
-	UartHandle.Instance          = USART_NAME; 
-	UartHandle.Init.BaudRate     = BPS_SETTING;
-	UartHandle.Init.WordLength   = UART_WORDLENGTH_9B;
-	UartHandle.Init.StopBits     = UART_STOPBITS_1;
-	UartHandle.Init.Parity       = UART_PARITY_ODD;
-	UartHandle.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
-	UartHandle.Init.Mode         = UART_MODE_TX_RX;
-	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
-    
-	if(HAL_UART_Init(&UartHandle) != HAL_OK) {
-		Error_Handler();
-	}
-};
-
-/*
- * システムログの低レベル出力のための文字出力
- */
-void
-target_fput_log(char c)
-{
-	char cr = '\r';
-	if (c == '\n') {
-		HAL_UART_Transmit(&UartHandle, (uint8_t *)&cr, 1, 0xFFFF); 
-	}
-	HAL_UART_Transmit(&UartHandle, (uint8_t *)&c, 1, 0xFFFF); 
 }
 
 /*

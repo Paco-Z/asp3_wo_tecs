@@ -1,0 +1,207 @@
+													TOPPERS Confidential
+		TOPPERSプロジェクト ディスカッションメモ
+		高分解能タイマを用いたシステム時刻管理機能のテスト方法
+
+		作成者: 高田広章（名古屋大学）
+		最終更新: 2014年5月31日
+
+○メモの位置付け
+
+このドキュメントは，高分解能タイマを用いたTOPPERS/ASP3カーネルのシステ
+ム時刻管理機能のテスト方法に関して検討するものである。
+
+○テストのアプローチ
+
+高分解能タイマを用いて実現したシステム時刻管理機能に関する網羅的なテス
+トを行うには，ターゲットに標準の高分解能タイマを使ってテストするだけで
+は不十分で，テスト用の高分解能タイマモジュールを用いることが必要である。
+テスト用の高分解能タイマモジュールは，ハードウェアタイマではなく，テス
+トデータに駆動されて動作するものである。
+
+テストプログラムでは，高分解能タイマモジュールの関数が，どのタイミング
+でどのパラメータで呼び出されるかを検査する。また，高分解能タイマモジュー
+ルの関数が返す値が，テストデータとなる。
+
+そこで，高分解能タイマモジュールの関数の中で，以下の3つの関数を，テスト
+プログラム側で用意することとする。
+
+	HRTCNT target_hrt_get_current(void)
+	void target_hrt_set_event(HRTCNT hrtcnt)
+	void target_hrt_raise_event(void)
+
+高分解能タイマモジュールの性質は，以下の3つの定数で決定される。そこで，
+この3つの定数の組を複数用意しておき，テストプログラムによって定数の組を
+切り換えることにする。
+
+	TCYC_HRTCNT
+	TSTEP_HRTCNT
+	HRTCNT_BOUND
+
+○テスト用の高分解能タイマモジュール
+
+テスト用の高分解能タイマモジュールの実現は，どうしてもターゲットに依存
+してしまう。具体的には，テストプログラムからタイマ割込みをかける処理が
+ターゲットに依存せざるをえない。これに対して，2つの対応案が考えられる。
+
+(案1) このテスト用のターゲット依存部を作成する。
+
+(案2) 既存のターゲット依存部が提供するタイマドライバ中を，条件コンパイ
+ルにより，このテストを行うためのターゲット依存部が作れるようにする。
+
+どちらの案も有力ではあるが，テストのためにターゲット依存部を複雑化させ
+るのを避けるという観点から，案1で進めることとする。具体的には，Mac OS
+X上でシステム時刻管理機能テストを行うためのターゲット依存部として，
+test_hrt_macosx_gccを作る。
+
+高分解能タイマモジュールの関数の中で，以下の2つの関数は，テスト用の高分
+解能タイマモジュールの中で実装する。
+
+	void target_hrt_initialize(intptr_t exinf)
+	void target_hrt_terminate(intptr_t exinf)
+
+また，テストプログラムからタイマ割込みをかけるために，以下の関数を，テ
+スト用の高分解能タイマモジュールの中で実装する。
+
+	void target_raise_hrt_int(uint_t timing)
+
+この関数は，テストプログラムから直接呼び出すためのもので，timingが0Uの
+場合には呼び出した直後に，1Uの場合には一定時間（テストプログラムの処理
+が落ち着く時間）後に，高分解能タイマ割込み（または，それを模擬するため
+の割込み）を発生させる。
+
+さらに，高分解能タイマ割込み（または，それを模擬するための割込み）を処
+理する割込みハンドラ（または，割込みサービスルーチン）も，テスト用の高
+分解能タイマモジュールの中で実装する。
+
+○高分解能タイマモジュールの性質
+
+高分解能タイマモジュールの性質を決定する3つの定数の組として，以下を用意
+する。どれを用いるかは，コンパイルオプションに-DHRT_CONFIGnを付けること
+で決定するものとする。
+
+(1) 1μ秒毎にカウントアップする32ビットタイマ
+
+#ifdef HRT_CONFIG1
+#undef TCYC_HRTCNT		/* 2^32 */
+#define TSTEP_HRTCNT	1U
+#define HRTCNT_BOUND	4000000002U
+#endif /* HRT_CONFIG1 */
+
+※ HRTCNT_BOUNDを400000002U（＝TMAX_RELTIM＋TSTEP_HRTCNT＋1）以上にして
+   おくと（最後の＋1は，ドリフト調整機能で端数を切り上げる分），通常の
+   状況で高分解能タイマに設定する相対カウント値がHRTCNT_BOUNDを超えるこ
+   とはなく，ムダなタイマ割込みが減らせる。
+
+(2) 10μ毎にカウントアップする16ビットタイマ
+
+#ifdef HRT_CONFIG2
+#define TCYC_HRTCNT		(0x10000U * 10U)
+#define TSTEP_HRTCNT	10U
+#define HRTCNT_BOUND	(0x10000U * 9U)
+#endif /* HRT_CONFIG2 */
+
+○テストシーケンスの記述方法
+
+●第1次案
+
+現在のテストシーケンスの記述方法に，カーネルの処理単位に加えて，以下の
+3つの関数を記述できる機能を追加する。
+
+	HRTCNT target_hrt_get_current(void)
+	void target_hrt_set_event(HRTCNT hrtcnt)
+	void target_hrt_raise_event(void)
+
+これにより，次のような記述が可能になる。
+
+== target_hrt_get_current-1（1回目）==
+1:	RETURN(10U)
+== target_hrt_set_event-1（1回目）==
+2:	assert(hrtcnt == HRTCNT_BOUND)
+	RETURN
+== TASK1（優先度：中）==
+3:	sta_alm(ALM1, 100U)
+== target_hrt_get_current-2（2回目）==
+4:	RETURN(20U)
+== target_hrt_set_event-2（2回目）==
+5:	assert(hrtcnt == 101U)
+	RETURN
+== TASK1（続き）==
+6:	DO(target_raise_hrt_int(1U))
+	slp_tsk()
+== target_hrt_get_current-3（3回目）==
+7:	RETURN(130U)
+== ALM1-1（1回目）==
+8:	wup_tsk(TASK1)
+	RETURN
+== target_hrt_get_current-4（4回目）==
+9:	RETURN(140U)
+== target_hrt_set_event-3（3回目）==
+10:	assert(hrtcnt == HRTCNT_BOUND)
+	RETURN
+== TASK1（続き）==
+11:	END
+
+これでテストシーケンスの記述は可能であるが，記述がかなり冗長で，作成・
+保守が面倒である。具体的には，次の問題を挙げることができる。
+
+(a) 関数の何回目の呼び出しであるかを，手動で記述する必要がある。
+
+(b) target_hrt_get_currentの中は「RETURN(N)」，target_hrt_set_eventの中
+	は「assert(hrtcnt == N)」「RETURN」と決まっているにもかかわらず，毎
+	回記述する必要がある。
+
+●第2次案
+
+(a)の問題を解決するために，何回目の呼び出しであるかを自動的に決めてくれ
+る記述方法を用意する。何回目の呼び出しであるかを変数で管理し，RETURNが
+あるとその変数をインクリメントする。
+
+具体的な記述方法は次の通り。
+
+== target_hrt_get_current-N ==
+1:	RETURN(10U)
+== target_hrt_set_event-N ==
+2:	assert(hrtcnt == HRTCNT_BOUND)
+	RETURN
+== TASK1（優先度：中）==
+3:	sta_alm(ALM1, 100U)
+== target_hrt_get_current-N ==
+4:	RETURN(20U)
+== target_hrt_set_event-N ==
+5:	assert(hrtcnt == 101U)
+	RETURN
+（以下略）
+
+●第3次案
+
+(b)の問題を改善した記述方法として，以下のような記述方法を導入する。
+
+== START ==
+1:		[target_hrt_get_current -> 10U]
+2:		[target_hrt_set_event <- HRTCNT_BOUND]
+== TASK1（優先度：中）==
+3:	sta_alm(ALM1, 100U)
+4:		[target_hrt_get_current -> 20U]
+5:		[target_hrt_set_event <- 101U]
+6:	DO(target_raise_hrt_int(1U))
+	slp_tsk()
+== HRT_HANDLER ==
+7:		[target_hrt_get_current -> 130U]
+== ALM1-1（1回目）==
+8:	wup_tsk(TASK1)
+	RETURN
+9:		[target_hrt_get_current -> 140U]
+10:		[target_hrt_set_event <- HRTCNT_BOUND]
+== TASK1（続き）==
+11:	END
+
+最初の「== START ==」は，テストシーケンスの開始を知らせるために必要であ
+る。途中の「== HRT_HANDLER ==」は，テストシーケンスを読みやすくするため
+のものであり，なくても差し支えない。
+
+この記述では，target_hrt_get_currentとして単に指定した値をリターンする
+だけ，target_hrt_set_eventとして単にパラメータの値をチェックしてリター
+ンするだけのコードしか生成できない。この他のコードを出したい場合には，
+第1次案または第2次案の記述方法を使う必要がある。
+
+以上

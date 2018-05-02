@@ -46,8 +46,6 @@
 
 #define STACK_SIZE			(1024)
 
-#define TASK_PORTID      2
-
 /*
  *  コア依存モジュール（ARM-M用）
  */

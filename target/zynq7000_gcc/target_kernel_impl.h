@@ -59,7 +59,7 @@
  *  トレースログに関する設定
  */
 #ifdef TOPPERS_ENABLE_TRACE
-#include "arch/logtrace/trace_config.h"
+#include "arch/tracelog/trace_log.h"
 #endif /* TOPPERS_ENABLE_TRACE */
 
 /*

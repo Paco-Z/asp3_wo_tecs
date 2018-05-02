@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: t_stdlib.h 117 2014-05-13 19:41:44Z ertl-hiro $
+ *  $Id: t_stdlib.h 834 2017-10-16 11:23:03Z ertl-hiro $
  */
 
 /*
@@ -59,15 +59,6 @@ extern "C" {
  *  E_OBJなど）の文字列を返す関数．
  */
 extern const char	*itron_strerror(ER ercd) throw();
-
-/*
- *  エラーメッセージのログ出力
- *
- *  サービスコールがエラーを返した場合に，そのファイル名，行番号，メイ
- *  ンエラーコード等を表示するための関数．
- */
-extern void		t_perror(uint_t prio, const char *file, int_t line,
-									const char *expr, ER ercd) throw();
 
 #ifdef __cplusplus
 }

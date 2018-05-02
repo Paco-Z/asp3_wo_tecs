@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: mutex.c 471 2015-12-30 10:03:16Z ertl-hiro $
+ *  $Id: mutex.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -330,9 +330,9 @@ mutex_release_all(TCB *p_tcb)
 ER
 loc_mtx(ID mtxid)
 {
-	MTXCB	*p_mtxcb;
-	WINFO_MTX winfo_mtx;
-	ER		ercd;
+	MTXCB		*p_mtxcb;
+	WINFO_MTX	winfo_mtx;
+	ER			ercd;
 
 	LOG_LOC_MTX_ENTER(mtxid);
 	CHECK_DISPATCH();
@@ -427,10 +427,10 @@ ploc_mtx(ID mtxid)
 ER
 tloc_mtx(ID mtxid, TMO tmout)
 {
-	MTXCB	*p_mtxcb;
-	WINFO_MTX winfo_mtx;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	MTXCB		*p_mtxcb;
+	WINFO_MTX	winfo_mtx;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TLOC_MTX_ENTER(mtxid, tmout);
 	CHECK_DISPATCH();

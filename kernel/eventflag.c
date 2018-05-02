@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: eventflag.c 471 2015-12-30 10:03:16Z ertl-hiro $
+ *  $Id: eventflag.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -170,11 +170,11 @@ check_flg_cond(FLGCB *p_flgcb, FLGPTN waiptn, MODE wfmode, FLGPTN *p_flgptn)
 ER
 set_flg(ID flgid, FLGPTN setptn)
 {
-	FLGCB	*p_flgcb;
-	QUEUE	*p_queue;
-	TCB		*p_tcb;
-	WINFO_FLG *p_winfo_flg;
-	ER		ercd;
+	FLGCB		*p_flgcb;
+	QUEUE		*p_queue;
+	TCB			*p_tcb;
+	WINFO_FLG	*p_winfo_flg;
+	ER			ercd;
 
 	LOG_SET_FLG_ENTER(flgid, setptn);
 	CHECK_UNL();
@@ -251,9 +251,9 @@ clr_flg(ID flgid, FLGPTN clrptn)
 ER
 wai_flg(ID flgid, FLGPTN waiptn, MODE wfmode, FLGPTN *p_flgptn)
 {
-	FLGCB	*p_flgcb;
-	WINFO_FLG winfo_flg;
-	ER		ercd;
+	FLGCB		*p_flgcb;
+	WINFO_FLG	winfo_flg;
+	ER			ercd;
 
 	LOG_WAI_FLG_ENTER(flgid, waiptn, wfmode, p_flgptn);
 	CHECK_DISPATCH();
@@ -339,10 +339,10 @@ pol_flg(ID flgid, FLGPTN waiptn, MODE wfmode, FLGPTN *p_flgptn)
 ER
 twai_flg(ID flgid, FLGPTN waiptn, MODE wfmode, FLGPTN *p_flgptn, TMO tmout)
 {
-	FLGCB	*p_flgcb;
-	WINFO_FLG winfo_flg;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	FLGCB		*p_flgcb;
+	WINFO_FLG	winfo_flg;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TWAI_FLG_ENTER(flgid, waiptn, wfmode, p_flgptn, tmout);
 	CHECK_DISPATCH();

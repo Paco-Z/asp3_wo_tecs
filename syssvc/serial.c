@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: serial.c 468 2015-12-30 00:56:27Z ertl-hiro $
+ *  $Id: serial.c 966 2018-05-02 08:08:18Z ertl-hiro $
  */
 
 /*
@@ -161,7 +160,7 @@ static const SPINIB spinib_table[TNUM_PORT] = {
  */
 typedef struct serial_port_control_block {
 	const SPINIB *p_spinib;		/* シリアルポート初期化ブロック */
-	SIOPCB	*p_siopcb;			/* シリアルI/Oポート管理ブロック */
+	SIOPCB	*p_siopcb;			/* SIOポート管理ブロック */
 	bool_t	openflag;			/* オープン済みフラグ */
 	bool_t	errorflag;			/* エラーフラグ */
 	uint_t	ioctl;				/* 動作制御の設定値 */
@@ -185,6 +184,18 @@ static SPCB	spcb_table[TNUM_PORT];
  */
 #define INDEX_PORT(portid)	((uint_t)((portid) - 1))
 #define get_spcb(portid)	(&(spcb_table[INDEX_PORT(portid)]))
+
+/*
+ *  シリアルポートIDの最小値と最大値
+ */
+#define TMIN_PORTID		1
+#define TMAX_PORTID		(TMIN_PORTID + TNUM_PORT - 1)
+
+/*
+ *  シリアルポートIDの範囲の判定
+ */
+#define VALID_PORTID(portid) \
+				(TMIN_PORTID <= (portid) && (portid) <= TMAX_PORTID)
 
 /*
  *  ポインタのインクリメント
@@ -263,7 +274,7 @@ serial_opn_por(ID portid)
 	if (sns_dpn()) {				/* コンテキストのチェック */
 		return(E_CTX);
 	}
-	if (!(1 <= portid && portid <= TNUM_PORT)) {
+	if (!VALID_PORTID(portid)) {
 		return(E_ID);				/* ポート番号のチェック */
 	}
 	p_spcb = get_spcb(portid);
@@ -337,7 +348,7 @@ serial_cls_por(ID portid)
 	if (sns_dpn()) {				/* コンテキストのチェック */
 		return(E_CTX);
 	}
-	if (!(1 <= portid && portid <= TNUM_PORT)) {
+	if (!VALID_PORTID(portid)) {
 		return(E_ID);				/* ポート番号のチェック */
 	}
 	p_spcb = get_spcb(portid);
@@ -386,12 +397,12 @@ serial_cls_por(ID portid)
 }
 
 /*
- *  シリアルポートへの文字送信
+ *  SIOポートへの文字送信
  *
- *  p_spcbで指定されるシリアルI/Oポートに対して，文字cを送信する．文字
- *  を送信レジスタにいれた場合にはtrueを返す．そうでない場合には，送信
- *  レジスタが空いたことを通知するコールバック関数を許可し，falseを返す．
- *  この関数は，CPUロック状態で呼び出される．
+ *  p_spcbで指定されるシリアルポートに対応するSIOポートに対して，文字c
+ *  を送信する．文字を送信レジスタにいれた場合にはtrueを返す．そうでな
+ *  い場合には，送信レジスタが空いたことを通知するコールバック関数を許
+ *  可し，falseを返す．この関数は，CPUロック状態で呼び出される．
  */
 Inline bool_t
 serial_snd_chr(SPCB *p_spcb, char c)
@@ -434,8 +445,7 @@ serial_wri_chr(SPCB *p_spcb, char c)
 	if (p_spcb->snd_count == 0U && !(p_spcb->snd_stopped)
 								&& serial_snd_chr(p_spcb, c)) {
 		/*
-		 *  シリアルI/Oデバイスの送信レジスタに文字を入れることに成功し
-		 *  た場合．
+		 *  SIOの送信レジスタに文字を入れることに成功した場合．
 		 */
 		buffer_full = false;
 	}
@@ -470,7 +480,7 @@ serial_wri_dat(ID portid, const char *buf, uint_t len)
 	if (sns_dpn()) {				/* コンテキストのチェック */
 		return(E_CTX);
 	}
-	if (!(1 <= portid && portid <= TNUM_PORT)) {
+	if (!VALID_PORTID(portid)) {
 		return(E_ID);				/* ポート番号のチェック */
 	}
 
@@ -553,7 +563,7 @@ serial_rea_dat(ID portid, char *buf, uint_t len)
 	if (sns_dpn()) {				/* コンテキストのチェック */
 		return(E_CTX);
 	}
-	if (!(1 <= portid && portid <= TNUM_PORT)) {
+	if (!VALID_PORTID(portid)) {
 		return(E_ID);				/* ポート番号のチェック */
 	}
 
@@ -609,7 +619,7 @@ serial_ctl_por(ID portid, uint_t ioctl)
 	if (sns_dpn()) {				/* コンテキストのチェック */
 		return(E_CTX);
 	}
-	if (!(1 <= portid && portid <= TNUM_PORT)) {
+	if (!VALID_PORTID(portid)) {
 		return(E_ID);				/* ポート番号のチェック */
 	}
 
@@ -636,7 +646,7 @@ serial_ref_por(ID portid, T_SERIAL_RPOR *pk_rpor)
 	if (sns_dpn()) {				/* コンテキストのチェック */
 		return(E_CTX);
 	}
-	if (!(1 <= portid && portid <= TNUM_PORT)) {
+	if (!VALID_PORTID(portid)) {
 		return(E_ID);				/* ポート番号のチェック */
 	}
 
@@ -664,7 +674,7 @@ sio_irdy_snd(intptr_t exinf)
 	p_spcb = (SPCB *) exinf;
 	if (p_spcb->rcv_fc_chr != '\0') {
 		/*
-		 *  START/STOP を送信する．
+		 *  START/STOPを送信する．
 		 */
 		(void) sio_snd_chr(p_spcb->p_siopcb, p_spcb->rcv_fc_chr);
 		p_spcb->rcv_fc_chr = '\0';
@@ -772,7 +782,7 @@ serial_get_chr(ID portid, char *p_c)
 {
 	SPCB	*p_spcb;
 
-	if (1 <= portid && portid <= TNUM_PORT) {	/* ポート番号のチェック */
+	if (VALID_PORTID(portid)) {					/* ポート番号のチェック */
 		p_spcb = get_spcb(portid);
 		if (p_spcb->openflag) {					/* オープン済みかのチェック */
 			if (p_spcb->snd_count > 0U) {

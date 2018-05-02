@@ -1,9 +1,8 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -47,7 +46,7 @@
 #include "uart_pl011.h"
 
 /*
- *  シリアルI/Oポート初期化ブロックの定義
+ *  SIOポート初期化ブロックの定義
  */
 typedef struct sio_port_initialization_block {
 	uintptr_t	base;			/* UARTレジスタのベースアドレス */
@@ -57,27 +56,28 @@ typedef struct sio_port_initialization_block {
 } SIOPINIB;
 
 /*
- *  シリアルI/Oポート管理ブロックの定義
+ *  SIOポート管理ブロックの定義
  */
 struct sio_port_control_block {
-    const SIOPINIB *siopinib;	/* シリアルI/Oポート初期化ブロック */
-    intptr_t	exinf;			/* 拡張情報 */
+	const SIOPINIB *siopinib;	/* SIOポート初期化ブロック */
+	intptr_t	exinf;			/* 拡張情報 */
+	bool_t		opened;			/* オープン済み */
 };
 
 /*
- *  シリアルI/Oポート初期化ブロック
+ *  SIOポート初期化ブロック
  */
 const SIOPINIB siopinib_table[TNUM_SIOP] = {
-    { SIO_UART_BASE, UART_IBRD_DEF, UART_FBRD_DEF, UART_LCR_H_DEF }
+	{ SIO_UART_BASE, UART_IBRD_DEF, UART_FBRD_DEF, UART_LCR_H_DEF }
 };
 
 /*
- *  シリアルI/Oポート管理ブロックのエリア
+ *  SIOポート管理ブロックのエリア
  */
 SIOPCB	siopcb_table[TNUM_SIOP];
 
 /*
- *  シリアルI/OポートIDから管理ブロックを取り出すためのマクロ
+ *  SIOポートIDから管理ブロックを取り出すためのマクロ
  */
 #define INDEX_SIOP(siopid)	((uint_t)((siopid) - 1))
 #define get_siopcb(siopid)	(&(siopcb_table[INDEX_SIOP(siopid)]))
@@ -92,62 +92,70 @@ uart_pl011_initialize(void)
 	uint_t	i;
 
 	/*
-	 *  シリアルI/Oポート管理ブロックの初期化
+	 *  SIOポート管理ブロックの初期化
 	 */
 	for (p_siopcb = siopcb_table, i = 0; i < TNUM_SIOP; p_siopcb++, i++) {
 		p_siopcb->siopinib = &(siopinib_table[i]);
+		p_siopcb->opened = false;
 	}
 }
 
 /*
- *  シリアルI/Oポートのオープン
+ *  SIOポートのオープン
  */
 SIOPCB *
 uart_pl011_opn_por(ID siopid, intptr_t exinf)
 {
-	SIOPCB		*p_siopcb;
+	SIOPCB	*p_siopcb;
 
 	p_siopcb = get_siopcb(siopid);
 
-	/*
-	 *  UARTをディスエーブル
-	 */
-	sil_wrw_mem(UART_CR(p_siopcb->siopinib->base), 0U);
+	if (!(p_siopcb->opened)) {
+		/*
+		 *  既にオープンしている場合は、二重にオープンしない．
+		 */
 
-	/*
-	 *  エラーフラグをクリア
-	 */
-    sil_wrw_mem(UART_ECR(p_siopcb->siopinib->base), 0U);
+		/*
+		 *  UARTをディスエーブル
+		 */
+		sil_wrw_mem(UART_CR(p_siopcb->siopinib->base), 0U);
 
-	/*
-	 *  FIFOを空にする
-	 */
-	while (uart_pl011_getready(p_siopcb->siopinib->base)) {
-		(void) uart_pl011_getchar(p_siopcb->siopinib->base);
-	}
+		/*
+		 *  エラーフラグをクリア
+		 */
+	    sil_wrw_mem(UART_ECR(p_siopcb->siopinib->base), 0U);
 
-	/*
-	 *  ボーレートと通信規格を設定
-	 */
-	sil_wrw_mem(UART_IBRD(p_siopcb->siopinib->base),
+		/*
+		 *  FIFOを空にする
+		 */
+		while (uart_pl011_getready(p_siopcb->siopinib->base)) {
+			(void) uart_pl011_getchar(p_siopcb->siopinib->base);
+		}
+
+		/*
+		 *  ボーレートと通信規格を設定
+		 */
+		sil_wrw_mem(UART_IBRD(p_siopcb->siopinib->base),
 									p_siopcb->siopinib->ibrd);
-	sil_wrw_mem(UART_FBRD(p_siopcb->siopinib->base),
+		sil_wrw_mem(UART_FBRD(p_siopcb->siopinib->base),
 									p_siopcb->siopinib->fbrd);
-	sil_wrw_mem(UART_LCR_H(p_siopcb->siopinib->base),
+		sil_wrw_mem(UART_LCR_H(p_siopcb->siopinib->base),
 									p_siopcb->siopinib->lcr_h);
 		
-	/*
-	 *  UARTをイネーブル
-	 */
-	sil_wrw_mem(UART_CR(p_siopcb->siopinib->base),
+		/*
+		 *  UARTをイネーブル
+		 */
+		sil_wrw_mem(UART_CR(p_siopcb->siopinib->base),
 						UART_CR_UARTEN|UART_CR_TXE|UART_CR_RXE);
-    
+	}
+
 	p_siopcb->exinf = exinf;
+	p_siopcb->opened = true;
 	return(p_siopcb);   
 }
 
 /*
- *  シリアルI/Oポートのクローズ
+ *  SIOポートのクローズ
  */
 void
 uart_pl011_cls_por(SIOPCB *p_siopcb)
@@ -159,7 +167,7 @@ uart_pl011_cls_por(SIOPCB *p_siopcb)
 }
 
 /*
- *  シリアルI/Oポートへの文字送信
+ *  SIOポートへの文字送信
  */
 bool_t
 uart_pl011_snd_chr(SIOPCB *p_siopcb, char c)
@@ -172,7 +180,7 @@ uart_pl011_snd_chr(SIOPCB *p_siopcb, char c)
 }
 
 /*
- *  シリアルI/Oポートからの文字受信
+ *  SIOポートからの文字受信
  */
 int_t
 uart_pl011_rcv_chr(SIOPCB *p_siopcb)
@@ -184,7 +192,7 @@ uart_pl011_rcv_chr(SIOPCB *p_siopcb)
 }
 
 /*
- *  シリアルI/Oポートからのコールバックの許可
+ *  SIOポートからのコールバックの許可
  */
 void
 uart_pl011_ena_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
@@ -204,7 +212,7 @@ uart_pl011_ena_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
 }
 
 /*
- *  シリアルI/Oポートからのコールバックの禁止
+ *  SIOポートからのコールバックの禁止
  */
 void
 uart_pl011_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
@@ -224,7 +232,7 @@ uart_pl011_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
 }
 
 /*
- *  シリアルI/Oポートに対する割込み処理
+ *  SIOポートに対する割込み処理
  */
 static void
 uart_pl011_isr_siop(SIOPCB *p_siopcb)
@@ -247,7 +255,7 @@ uart_pl011_isr_siop(SIOPCB *p_siopcb)
  *  SIOの割込みサービスルーチン
  */
 void
-uart_pl011_isr()
+uart_pl011_isr(void)
 {
 	uart_pl011_isr_siop(&(siopcb_table[0]));
 }

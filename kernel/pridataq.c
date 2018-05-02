@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: pridataq.c 471 2015-12-30 10:03:16Z ertl-hiro $
+ *  $Id: pridataq.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -287,9 +287,9 @@ receive_pridata(PDQCB *p_pdqcb, intptr_t *p_data, PRI *p_datapri)
 ER
 snd_pdq(ID pdqid, intptr_t data, PRI datapri)
 {
-	PDQCB	*p_pdqcb;
-	WINFO_SPDQ winfo_spdq;
-	ER		ercd;
+	PDQCB		*p_pdqcb;
+	WINFO_SPDQ	winfo_spdq;
+	ER			ercd;
 
 	LOG_SND_PDQ_ENTER(pdqid, data, datapri);
 	CHECK_DISPATCH();
@@ -373,10 +373,10 @@ psnd_pdq(ID pdqid, intptr_t data, PRI datapri)
 ER
 tsnd_pdq(ID pdqid, intptr_t data, PRI datapri, TMO tmout)
 {
-	PDQCB	*p_pdqcb;
-	WINFO_SPDQ winfo_spdq;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	PDQCB		*p_pdqcb;
+	WINFO_SPDQ	winfo_spdq;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TSND_PDQ_ENTER(pdqid, data, datapri, tmout);
 	CHECK_DISPATCH();
@@ -424,9 +424,9 @@ tsnd_pdq(ID pdqid, intptr_t data, PRI datapri, TMO tmout)
 ER
 rcv_pdq(ID pdqid, intptr_t *p_data, PRI *p_datapri)
 {
-	PDQCB	*p_pdqcb;
-	WINFO_RPDQ winfo_rpdq;
-	ER		ercd;
+	PDQCB		*p_pdqcb;
+	WINFO_RPDQ	winfo_rpdq;
+	ER			ercd;
 
 	LOG_RCV_PDQ_ENTER(pdqid, p_data, p_datapri);
 	CHECK_DISPATCH();
@@ -508,10 +508,10 @@ prcv_pdq(ID pdqid, intptr_t *p_data, PRI *p_datapri)
 ER
 trcv_pdq(ID pdqid, intptr_t *p_data, PRI *p_datapri, TMO tmout)
 {
-	PDQCB	*p_pdqcb;
-	WINFO_RPDQ winfo_rpdq;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	PDQCB		*p_pdqcb;
+	WINFO_RPDQ	winfo_rpdq;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TRCV_PDQ_ENTER(pdqid, p_data, p_datapri, tmout);
 	CHECK_DISPATCH();

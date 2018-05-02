@@ -2,13 +2,13 @@
  *  TOPPERS/ASP Kernel
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
- *
+ * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
- *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
+ * 
+ *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
  *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
@@ -30,14 +30,14 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
- *  $Id: target_syssvc.h 720 2016-04-01 22:16:17Z ertl-hiro $
+ * 
+ *  $Id: target_syssvc.h 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -51,20 +51,21 @@
 #ifndef TOPPERS_TARGET_SYSSVC_H
 #define TOPPERS_TARGET_SYSSVC_H
 
-
 #include "gr_peach.h"
 
 /*
  *  トレースログに関する設定
  */
 #ifdef TOPPERS_ENABLE_TRACE
-#include "logtrace/trace_config.h"
+#include "arch/tracelog/trace_log.h"
 #endif /* TOPPERS_ENABLE_TRACE */
+
+#ifdef TOPPERS_OMIT_TECS
 
 /*
  *  起動メッセージのターゲットシステム名
  */
-#define TARGET_NAME    "GR-PEACH(RZA1H Cortex-A9)"
+#define TARGET_NAME    "GR-PEACH"
 
 /*
  *  システムログの低レベル出力のための文字出力
@@ -74,33 +75,28 @@
 extern void	target_fput_log(char c);
 
 /*
- *  ログタスクで使用するポート
+ *  シリアルポートの数
  */
-#define LOGTASK_PORTID  USE_SIO_PORTID
+#define TNUM_PORT		1		/* サポートするシリアルポートの数 */
 
 /*
- *  ボーレート設定
+ *  SIOドライバで使用するSCIFに関する設定
  */
-#define UART1_BPS_SETTING  115200
-#define UART2_BPS_SETTING  115200
-#define UART3_BPS_SETTING  115200
-#define UART4_BPS_SETTING  115200
-#define UART5_BPS_SETTING  115200
-#define UART6_BPS_SETTING  115200
-#define UART7_BPS_SETTING  115200
-#define UART8_BPS_SETTING  115200
+#define SIO_SCIF_BASE		SCIF2_BASE
+#define SIO_RX_INTNO		INTNO_SCIF2_RXI
+#define SIO_TX_INTNO		INTNO_SCIF2_TXI
+#define SIO_SCIF_BAUDRATE	115200
 
 /*
- *  サポートするシリアルポートの数
+ *  低レベル出力で使用するSIOポート
  */
-#ifndef TNUM_PORT
-#define TNUM_PORT       4
-#endif /* TNUM_PORT */
+#define SIOPID_FPUT			1
+
+#endif /* TOPPERS_OMIT_TECS */
 
 /*
- *  システムログタスク関連の定数の定義
- *
- *  デフォルト値の通り．
+ *  コアで共通な定義（チップ依存部は飛ばす）
  */
+#include "core_syssvc.h"
 
 #endif /* TOPPERS_TARGET_SYSSVC_H */

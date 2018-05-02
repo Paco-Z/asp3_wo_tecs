@@ -4,7 +4,7 @@
 #  TOPPERS Software
 #      Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#  Copyright (C) 2016,2017 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2016-2018 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,9 +36,10 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: testexec.rb 796 2017-07-19 14:21:08Z ertl-hiro $
+#  $Id: testexec.rb 949 2018-04-19 13:29:51Z ertl-hiro $
 # 
 
+Encoding.default_external = 'utf-8'
 require "pp"
 
 #
@@ -58,30 +59,31 @@ TEST_SPEC = {
   "cpuexc10" => { SRC: "test_cpuexc10", CFG: "test_cpuexc" },
   "dlynse"   => { SRC: "test_dlynse" },
   "dtq1"     => { SRC: "test_dtq1" },
+  "exttsk"   => { SRC: "test_exttsk", CDL: "test_pf_bitkernel" },
   "flg1"     => { SRC: "test_flg1" },
   "hrt1"     => { SRC: "test_hrt1" },
   "int1"     => { SRC: "test_int1" },
-  "mutex1"   => { SRC: "test_mutex1" },
-  "mutex2"   => { SRC: "test_mutex2" },
-  "mutex3"   => { SRC: "test_mutex3" },
-  "mutex4"   => { SRC: "test_mutex4" },
-  "mutex5"   => { SRC: "test_mutex5" },
-  "mutex6"   => { SRC: "test_mutex6" },
-  "mutex7"   => { SRC: "test_mutex7" },
-  "mutex8"   => { SRC: "test_mutex8" },
+  "mutex1"   => { SRC: "test_mutex1", CDL: "test_pf_bitmutex" },
+  "mutex2"   => { SRC: "test_mutex2", CDL: "test_pf_bitmutex" },
+  "mutex3"   => { SRC: "test_mutex3", CDL: "test_pf_bitmutex" },
+  "mutex4"   => { SRC: "test_mutex4", CDL: "test_pf_bitmutex" },
+  "mutex5"   => { SRC: "test_mutex5", CDL: "test_pf_bitmutex" },
+  "mutex6"   => { SRC: "test_mutex6", CDL: "test_pf_bitmutex" },
+  "mutex7"   => { SRC: "test_mutex7", CDL: "test_pf_bitmutex" },
+  "mutex8"   => { SRC: "test_mutex8", CDL: "test_pf_bitmutex" },
   "notify1"  => { SRC: "test_notify1" },
-  "raster1"  => { SRC: "test_raster1" },
+  "raster1"  => { SRC: "test_raster1", CDL: "test_pf_bitkernel" },
   "raster2"  => { SRC: "test_raster2" },
   "sem1"     => { SRC: "test_sem1" },
   "sem2"     => { SRC: "test_sem2" },
   "sysman1"  => { SRC: "test_sysman1" },
   "sysstat1" => { SRC: "test_sysstat1" },
-  "task1"    => { SRC: "test_task1" },
+  "task1"    => { SRC: "test_task1", CDL: "test_pf_bitkernel" },
   "tmevt1"   => { SRC: "test_tmevt1" },
 
   # メッセージバッファ機能拡張パッケージの機能テストプログラム
-  "messagebuf1" => { SRC: "test_messagebuf1" },
-  "messagebuf2" => { SRC: "test_messagebuf2" },
+  "messagebuf1" => { SRC: "test_messagebuf1", CDL: "test_pf_bitkernel" },
+  "messagebuf2" => { SRC: "test_messagebuf2", CDL: "test_pf_bitkernel" },
 
   # オーバランハンドラ機能拡張パッケージの機能テストプログラム
   "ovrhdr1"  => { SRC: "test_ovrhdr1" },
@@ -178,6 +180,9 @@ def BuildTest(test, testSpec, mkdirFlag=false)
       configCommand += " -C #{testSpec[:CDL]}.cdl"
     else
       configCommand += " -C test_pf.cdl"
+    end
+    if testSpec.has_key?(:SYSLIB)
+      configCommand += " -S #{testSpec[:SYSLIB]}.o"
     end
     if testSpec.has_key?(:DEFS)
       configCommand += " -O \"#{testSpec[:DEFS]}\""

@@ -10,8 +10,8 @@
 #undef dispatch
 #undef start_dispatch
 #undef exit_and_dispatch
-#undef ret_int
-#undef ret_exc
+#undef int_handler_entry
+#undef exc_handler_entry
 #undef call_exit_kernel
 #undef start_r
 #undef target_initialize
@@ -34,7 +34,7 @@
 #undef target_ovrtimer_handler
 
 /*
- *  trace_config.c
+ *  tTraceLog.c
  */
 #undef log_dsp_enter
 #undef log_dsp_leave

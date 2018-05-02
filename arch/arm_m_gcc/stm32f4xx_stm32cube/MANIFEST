@@ -11,8 +11,8 @@ chip_syssvc.h
 chip_unrename.h
 Makefile.chip
 MANIFEST
-usart.c
-usart.h
+tUsart.c
+tUsart.cdl
 
 CMSIS/CMSIS_END_USER_LICENCE_AGREEMENT.pdf
 

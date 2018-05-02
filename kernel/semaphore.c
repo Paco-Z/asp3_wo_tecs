@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: semaphore.c 471 2015-12-30 10:03:16Z ertl-hiro $
+ *  $Id: semaphore.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -188,9 +188,9 @@ sig_sem(ID semid)
 ER
 wai_sem(ID semid)
 {
-	SEMCB	*p_semcb;
-	WINFO_SEM winfo_sem;
-	ER		ercd;
+	SEMCB		*p_semcb;
+	WINFO_SEM	winfo_sem;
+	ER			ercd;
 
 	LOG_WAI_SEM_ENTER(semid);
 	CHECK_DISPATCH();
@@ -261,10 +261,10 @@ pol_sem(ID semid)
 ER
 twai_sem(ID semid, TMO tmout)
 {
-	SEMCB	*p_semcb;
-	WINFO_SEM winfo_sem;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	SEMCB		*p_semcb;
+	WINFO_SEM	winfo_sem;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TWAI_SEM_ENTER(semid, tmout);
 	CHECK_DISPATCH();

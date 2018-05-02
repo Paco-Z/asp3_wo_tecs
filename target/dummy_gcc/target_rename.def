@@ -2,8 +2,8 @@
 dispatch
 start_dispatch
 exit_and_dispatch
-ret_int
-ret_exc
+int_handler_entry
+exc_handler_entry
 call_exit_kernel
 start_r
 target_initialize
@@ -23,7 +23,7 @@ target_ovrtimer_stop
 target_ovrtimer_get_current
 target_ovrtimer_handler
 
-# trace_config.c
+# tTraceLog.c
 log_dsp_enter
 log_dsp_leave
 log_inh_enter

@@ -1,7 +1,7 @@
 #
 #		Makefileのコア依存部（ARM用）
 #
-#  $Id: Makefile.core 755 2016-06-12 10:08:22Z ertl-hiro $
+#  $Id: Makefile.core 929 2018-03-27 13:16:12Z ertl-hiro $
 #
 
 #
@@ -52,6 +52,6 @@ TARGET_OFFSET_TRB = $(COREDIR)/core_offset.trb
 START_OBJS = start.o
 
 $(START_OBJS): %.o: %.S
-	$(CC) -c $(CFLAGS) $(KERNEL_CFLAGS) $<
+	$(CC) -c -MD -MP -MF $(DEPDIR)/$*.d $(CFLAGS) $(KERNEL_CFLAGS) $<
 
 LDFLAGS := -nostdlib $(LDFLAGS)

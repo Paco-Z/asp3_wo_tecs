@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel.h 231 2014-09-28 07:54:17Z ertl-hiro $
+ *  $Id: target_kernel.h 854 2017-11-04 16:56:17Z ertl-hiro $
  */
 
 /*
@@ -55,6 +55,9 @@
  */
 #define TOPPERS_TARGET_SUPPORT_DIS_INT		/* dis_int */
 #define TOPPERS_TARGET_SUPPORT_ENA_INT		/* ena_int */
+#define TOPPERS_TARGET_SUPPORT_CLR_INT		/* clr_int */
+#define TOPPERS_TARGET_SUPPORT_RAS_INT		/* ras_int */
+#define TOPPERS_TARGET_SUPPORT_PRB_INT		/* prb_int */
 
 /*
  *  高分解能タイマのタイマ周期

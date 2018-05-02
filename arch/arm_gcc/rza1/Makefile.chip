@@ -1,7 +1,7 @@
 #
 #		Makefile のチップ依存部（RZ/A1用）
 #
-#  $Id: Makefile.chip 720 2016-04-01 22:16:17Z ertl-hiro $
+#  $Id: Makefile.chip 914 2018-03-07 10:16:16Z ertl-hiro $
 # 
 
 #
@@ -24,6 +24,11 @@ KERNEL_DIRS := $(KERNEL_DIRS) $(CHIPDIR)
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) gic_support.o
 KERNEL_COBJS := $(KERNEL_COBJS) chip_kernel_impl.o gic_kernel_impl.o \
 															chip_timer.o
+
+#
+#  システムサービスに関する定義
+#
+SYSSVC_DIRS := $(SYSSVC_DIRS) $(CHIPDIR)
 
 #
 #  コンフィギュレータ関係の変数の定義

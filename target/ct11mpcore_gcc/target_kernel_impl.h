@@ -59,7 +59,7 @@
  *  トレースログに関する設定
  */
 #ifdef TOPPERS_ENABLE_TRACE
-#include "arch/logtrace/trace_config.h"
+#include "arch/tracelog/trace_log.h"
 #endif /* TOPPERS_ENABLE_TRACE */
 
 /*
@@ -72,11 +72,6 @@
  *  デフォルトの非タスクコンテキスト用のスタック領域の定義
  */
 #define DEFAULT_ISTKSZ	0x2000U
-
-/*
- *  target_fput_logで使用するUARTの指定
- */
-#define FPUT_UART_BASE	EB_UART0_BASE
 
 /*
  *  微少時間待ちのための定義（本来はSILのターゲット依存部）

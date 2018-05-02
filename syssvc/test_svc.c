@@ -1,9 +1,8 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_svc.c 391 2015-08-01 04:22:59Z ertl-hiro $
+ *  $Id: test_svc.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /* 
@@ -46,7 +45,6 @@
 #include <sil.h>
 #include <t_syslog.h>
 #include <t_stdlib.h>
-#include <log_output.h>
 #include "syssvc/syslog.h"
 #include "target_syssvc.h"
 #include "test_svc.h"
@@ -57,28 +55,13 @@
 static uint_t	check_count;
 
 /*
- *	自己診断関数
- */
-static BIT_FUNC	check_bit_func;
-
-/*
  *  テストプログラムの開始
  */
 void
-test_start(char *progname)
+test_start(const char *progname)
 {
 	syslog_1(LOG_NOTICE, "Test program: %s", progname);
 	check_count = 0U;
-	check_bit_func = NULL;
-}
-
-/*
- *	自己診断関数の設定
- */
-void
-set_bit_service(BIT_FUNC bit_func)
-{
-	check_bit_func = bit_func;
 }
 
 /*
@@ -103,8 +86,11 @@ test_finish(void)
 void
 check_point(uint_t count)
 {
-	bool_t	errorflag = false;
-	ER		rercd;
+	bool_t		errorflag = false;
+#ifdef CHECK_BIT_FUNC
+	ER			rercd;
+	extern ER	CHECK_BIT_FUNC(void);
+#endif /* CHECK_BIT_FUNC */
 	SIL_PRE_LOC;
 
 	/*
@@ -126,14 +112,14 @@ check_point(uint_t count)
 	/*
 	 *  カーネルの内部状態の検査
 	 */
-	if (check_bit_func != NULL) {
-		rercd = (*check_bit_func)();
-		if (rercd < 0) {
-			syslog_2(LOG_ERROR, "## Internal inconsistency detected (%s, %d).",
-								itron_strerror(rercd), SERCD(rercd));
-			errorflag = true;
-		}
+#ifdef CHECK_BIT_FUNC
+	rercd = CHECK_BIT_FUNC();
+	if (rercd < 0) {
+		syslog_2(LOG_ERROR, "## Internal inconsistency detected (%s, %d).\007",
+										itron_strerror(rercd), SERCD(rercd));
+		errorflag = true;
 	}
+#endif /* CHECK_BIT_FUNC */
 
 	/*
 	 *  エラーが検出された場合は，テストプログラムを終了する．
@@ -167,8 +153,8 @@ check_finish(uint_t count)
 void
 check_assert_error(const char *expr, const char *file, int_t line)
 {
-	syslog_3(LOG_ERROR, "## Assertion `%s' failed at %s:%u.",
-								expr, file, line);
+	syslog_3(LOG_ERROR, "## Assertion `%s' failed at %s:%u.\007",
+												expr, file, line);
 	test_finish();
 }
 
@@ -179,6 +165,6 @@ void
 check_ercd_error(ER ercd, const char *file, int_t line)
 {
 	syslog_3(LOG_ERROR, "## Unexpected error %s detected at %s:%u.",
-								itron_strerror(ercd), file, line);
+									itron_strerror(ercd), file, line);
 	test_finish();
 }

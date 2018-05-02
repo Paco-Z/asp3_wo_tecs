@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: gic_kernel_impl.h 799 2017-07-19 23:12:42Z ertl-hiro $
+ *  $Id: gic_kernel_impl.h 875 2018-01-17 23:29:29Z ertl-hiro $
  */
 
 /*
@@ -125,7 +125,7 @@
 #define GICC_IAR		GIC_REG(GICC_BASE, 0x0C)
 #define GICC_EOIR		GIC_REG(GICC_BASE, 0x10)
 #define GICC_RPR		GIC_REG(GICC_BASE, 0x14)
-#define GICC_HPIR		GIC_REG(GICC_BASE, 0x18)
+#define GICC_HPPIR		GIC_REG(GICC_BASE, 0x18)
 
 /*
  *  CPUインタフェース制御レジスタ（GICC_CTLR）の設定値（GICv1でセキュリ

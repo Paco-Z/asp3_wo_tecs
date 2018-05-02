@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: syslog.c 406 2015-08-02 21:57:18Z ertl-hiro $
+ *  $Id: syslog.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -52,47 +51,21 @@
 #include "syslog.h"
 
 /*
+ *  ログバッファのサイズ
+ */
+#ifndef TCNT_SYSLOG_BUFFER
+#define TCNT_SYSLOG_BUFFER	32		/* ログバッファのサイズ */
+#endif /* TCNT_SYSLOG_BUFFER */
+
+/*
  *  トレースログマクロのデフォルト定義
+ *
+ *  システムログに出力されたログ情報をトレースログにも記録できるように，
+ *  syslog_wri_logの入口にトレースログマクロを置く．
  */
 #ifndef LOG_SYSLOG_WRI_LOG_ENTER
 #define LOG_SYSLOG_WRI_LOG_ENTER(prio, p_syslog)
 #endif /* LOG_SYSLOG_WRI_LOG_ENTER */
-
-#ifndef LOG_SYSLOG_WRI_LOG_LEAVE
-#define LOG_SYSLOG_WRI_LOG_LEAVE(ercd)
-#endif /* LOG_SYSLOG_WRI_LOG_LEAVE */
-
-#ifndef LOG_SYSLOG_REA_LOG_ENTER
-#define LOG_SYSLOG_REA_LOG_ENTER(p_syslog)
-#endif /* LOG_SYSLOG_REA_LOG_ENTER */
-
-#ifndef LOG_SYSLOG_REA_LOG_LEAVE
-#define LOG_SYSLOG_REA_LOG_LEAVE(ercd, p_syslog)
-#endif /* LOG_SYSLOG_REA_LOG_LEAVE */
-
-#ifndef LOG_SYSLOG_MSK_LOG_ENTER
-#define LOG_SYSLOG_MSK_LOG_ENTER(logmask, lowmask)
-#endif /* LOG_SYSLOG_MSK_LOG_ENTER */
-
-#ifndef LOG_SYSLOG_MSK_LOG_LEAVE
-#define LOG_SYSLOG_MSK_LOG_LEAVE(ercd)
-#endif /* LOG_SYSLOG_MSK_LOG_LEAVE */
-
-#ifndef LOG_SYSLOG_REF_LOG_ENTER
-#define LOG_SYSLOG_REF_LOG_ENTER(pk_rlog)
-#endif /* LOG_SYSLOG_REF_LOG_ENTER */
-
-#ifndef LOG_SYSLOG_REF_LOG_LEAVE
-#define LOG_SYSLOG_REF_LOG_LEAVE(ercd, pk_rlog)
-#endif /* LOG_SYSLOG_REF_LOG_LEAVE */
-
-#ifndef LOG_SYSLOG_FLS_LOG_ENTER
-#define LOG_SYSLOG_FLS_LOG_ENTER()
-#endif /* LOG_SYSLOG_FLS_LOG_ENTER */
-
-#ifndef LOG_SYSLOG_FLS_LOG_LEAVE
-#define LOG_SYSLOG_FLS_LOG_LEAVE(ercd)
-#endif /* LOG_SYSLOG_FLS_LOG_LEAVE */
 
 /*
  *  ログ時刻の取り出し
@@ -182,7 +155,6 @@ syslog_wri_log(uint_t prio, const SYSLOG *p_syslog)
 	}
 
 	SIL_UNL_INT();
-	LOG_SYSLOG_WRI_LOG_LEAVE(E_OK);
 	return(E_OK);
 }
 
@@ -197,7 +169,6 @@ syslog_rea_log(SYSLOG *p_syslog)
 	ER_UINT	ercd;
 	SIL_PRE_LOC;
 
-	LOG_SYSLOG_REA_LOG_ENTER(p_syslog);
 	SIL_LOC_INT();
 
 	/*
@@ -218,7 +189,6 @@ syslog_rea_log(SYSLOG *p_syslog)
 	}
 
 	SIL_UNL_INT();
-	LOG_SYSLOG_REA_LOG_LEAVE(ercd, p_syslog);
 	return(ercd);
 }
 
@@ -230,14 +200,10 @@ syslog_msk_log(uint_t logmask, uint_t lowmask)
 {
 	SIL_PRE_LOC;
 
-	LOG_SYSLOG_MSK_LOG_ENTER(logmask, lowmask);
 	SIL_LOC_INT();
-
 	syslog_logmask = logmask;
 	syslog_lowmask_not = ~lowmask;
-
 	SIL_UNL_INT();
-	LOG_SYSLOG_MSK_LOG_LEAVE(E_OK);
 	return(E_OK);
 }
 
@@ -249,16 +215,12 @@ syslog_ref_log(T_SYSLOG_RLOG *pk_rlog)
 {
 	SIL_PRE_LOC;
 
-	LOG_SYSLOG_REF_LOG_ENTER(pk_rlog);
 	SIL_LOC_INT();
-
 	pk_rlog->count = syslog_count;
 	pk_rlog->lost = syslog_lost;
 	pk_rlog->logmask = syslog_logmask;
 	pk_rlog->lowmask = ~syslog_lowmask_not;
-
 	SIL_UNL_INT();
-	LOG_SYSLOG_REF_LOG_LEAVE(E_OK, pk_rlog);
 	return(E_OK);
 }
 
@@ -272,7 +234,6 @@ syslog_fls_log(void)
 	ER_UINT	rercd;
 	SIL_PRE_LOC;
 
-	LOG_SYSLOG_FLS_LOG_ENTER();
 	SIL_LOC_INT();
 
 	while ((rercd = syslog_rea_log(&logbuf)) >= 0) {
@@ -286,6 +247,5 @@ syslog_fls_log(void)
 	}
 
 	SIL_UNL_INT();
-	LOG_SYSLOG_FLS_LOG_LEAVE(E_OK);
 	return(E_OK);
 }

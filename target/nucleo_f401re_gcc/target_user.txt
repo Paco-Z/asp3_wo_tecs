@@ -1,6 +1,6 @@
 =====================================================================
                     NUCLEO_F401RE(GCC)ターゲット依存部 
-                                  Last Modified:2017 Jan 13 19:30:50
+                                  Last Modified:2018 May 02 21:53:49
 =====================================================================
 
 (1) 対応しているターゲットシステムの種類・構成
@@ -40,6 +40,12 @@ GDBないし，Atollic TrueStudioを用いた環境で動作確認を行って�
 動作確認した TrueStudio は以下のバージョンである．
 
     V7.1.0
+
+・configure のオプション
+
+make によりビルドする場合は，以下のオプションでconfigureを実行すること．
+
+ configure.rb -T nucleo_f401re_gcc -S "syslog.o banner.o  serial.o logtask.o usart.o target_serial.o"
 
 (3) ターゲット定義事項の規定
 

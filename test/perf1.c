@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf1.c 509 2016-01-12 06:06:14Z ertl-hiro $
+ *  $Id: perf1.c 964 2018-05-02 07:53:57Z ertl-hiro $
  */
 
 /*
@@ -62,16 +62,29 @@
 void task1(intptr_t exinf)
 {
 	uint_t	i;
+	ER		ercd;
 
-	slp_tsk();
-	end_measure(1);
+	ercd = slp_tsk();
+	check_ercd(ercd, E_OK);
+
+	ercd = end_measure(1);
+	check_ercd(ercd, E_OK);
+
 	for (i = 1; i < NO_MEASURE; i++) {
-		begin_measure(2);
-		slp_tsk();
-		end_measure(1);
+		ercd = begin_measure(2);
+		check_ercd(ercd, E_OK);
+
+		ercd = slp_tsk();
+		check_ercd(ercd, E_OK);
+
+		ercd = end_measure(1);
+		check_ercd(ercd, E_OK);
 	}
-	begin_measure(2);
-	slp_tsk();
+	ercd = begin_measure(2);
+	check_ercd(ercd, E_OK);
+
+	ercd = slp_tsk();
+	check_ercd(ercd, E_OK);
 }
 
 /*
@@ -80,11 +93,17 @@ void task1(intptr_t exinf)
 void task2(intptr_t exinf)
 {
 	uint_t	i;
+	ER		ercd;
 
 	for (i = 0; i < NO_MEASURE; i++) {
-		begin_measure(1);
-		wup_tsk(TASK1);
-		end_measure(2);
+		ercd = begin_measure(1);
+		check_ercd(ercd, E_OK);
+
+		ercd = wup_tsk(TASK1);
+		check_ercd(ercd, E_OK);
+
+		ercd = end_measure(2);
+		check_ercd(ercd, E_OK);
 	}
 	wup_tsk(TASK1);
 }
@@ -94,17 +113,28 @@ void task2(intptr_t exinf)
  */
 void main_task(intptr_t exinf)
 {
-	syslog_0(LOG_NOTICE, "Performance evaluation program (1)");
-	init_hist(1);
-	init_hist(2);
+	ER		ercd;
 
-	act_tsk(TASK1);
-	act_tsk(TASK2);
+	syslog_0(LOG_NOTICE, "Performance evaluation program (1)");
+	ercd = init_hist(1);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(2);
+	check_ercd(ercd, E_OK);
+
+	ercd = act_tsk(TASK1);
+	check_ercd(ercd, E_OK);
+
+	ercd = act_tsk(TASK2);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE, "Execution times of wup_tsk -> slp_tsk");
-	print_hist(1);
+	ercd = print_hist(1);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE, "Execution times of slp_tsk -> wup_tsk");
-	print_hist(2);
+	ercd = print_hist(2);
+	check_ercd(ercd, E_OK);
+
 	check_finish(0);
 }

@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2013-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,15 +35,15 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_syssvc.h 524 2016-01-14 11:01:56Z ertl-hiro $
+ *  $Id: target_syssvc.h 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
  *		システムサービスのターゲット依存部（ダミーターゲット用）
  *
- *  システムサービスのターゲット依存部のインクルードファイル．このファ
- *  イルの内容は，コンポーネント記述ファイルに記述され，このファイルは
- *  無くなる見込み．
+ *  システムサービスのターゲット依存部のヘッダファイル．システムサービ
+ *  スのターゲット依存の設定は，できる限りコンポーネント記述ファイルで
+ *  記述し，このファイルに記述するものは最小限とする．
  */
 
 #ifndef TOPPERS_TARGET_SYSSVC_H
@@ -53,8 +53,10 @@
  *  トレースログに関する設定
  */
 #ifdef TOPPERS_ENABLE_TRACE
-#include "arch/logtrace/trace_config.h"
+#include "arch/tracelog/trace_log.h"
 #endif /* TOPPERS_ENABLE_TRACE */
+
+#ifdef TOPPERS_OMIT_TECS
 
 /*
  *  起動メッセージのターゲットシステム名
@@ -69,7 +71,7 @@
 extern void	target_fput_log(char c);
 
 /*
- *  シリアルポート数の定義
+ *  シリアルポートの数
  */
 #define TNUM_PORT		1		/* サポートするシリアルポートの数 */
 
@@ -78,4 +80,5 @@ extern void	target_fput_log(char c);
  */
 #define LOGTASK_STACK_SIZE	4096		/* スタック領域のサイズ */
 
+#endif /* TOPPERS_OMIT_TECS */
 #endif /* TOPPERS_TARGET_SYSSVC_H */

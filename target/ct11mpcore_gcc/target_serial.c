@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_serial.c 362 2015-07-26 11:29:15Z ertl-hiro $
+ *  $Id: target_serial.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -76,7 +76,7 @@ sio_isr(intptr_t exinf)
 }
 
 /*
- *  シリアルI/Oポートのオープン
+ *  SIOポートのオープン
  */
 SIOPCB *
 sio_opn_por(ID siopid, intptr_t exinf)
@@ -89,14 +89,14 @@ sio_opn_por(ID siopid, intptr_t exinf)
 	p_siopcb = uart_pl011_opn_por(siopid, exinf);
 
 	/*
-	 *  シリアルI/Oの割込みマスクを解除する．
+	 *  SIOの割込みマスクを解除する．
 	 */
 	(void) ena_int(INTNO_SIO);
 	return(p_siopcb);
 }
 
 /*
- *  シリアルI/Oポートのクローズ
+ *  SIOポートのクローズ
  */
 void
 sio_cls_por(SIOPCB *p_siopcb)
@@ -107,13 +107,13 @@ sio_cls_por(SIOPCB *p_siopcb)
 	uart_pl011_cls_por(p_siopcb);
 
 	/*
-	 *  シリアルI/Oの割込みをマスクする．
+	 *  SIOの割込みをマスクする．
 	 */
 	(void) dis_int(INTNO_SIO);
 }
 
 /*
- *  シリアルI/Oポートへの文字送信
+ *  SIOポートへの文字送信
  */
 bool_t
 sio_snd_chr(SIOPCB *siopcb, char c)
@@ -122,7 +122,7 @@ sio_snd_chr(SIOPCB *siopcb, char c)
 }
 
 /*
- *  シリアルI/Oポートからの文字受信
+ *  SIOポートからの文字受信
  */
 int_t
 sio_rcv_chr(SIOPCB *siopcb)
@@ -131,7 +131,7 @@ sio_rcv_chr(SIOPCB *siopcb)
 }
 
 /*
- *  シリアルI/Oポートからのコールバックの許可
+ *  SIOポートからのコールバックの許可
  */
 void
 sio_ena_cbr(SIOPCB *siopcb, uint_t cbrtn)
@@ -140,7 +140,7 @@ sio_ena_cbr(SIOPCB *siopcb, uint_t cbrtn)
 }
 
 /*
- *  シリアルI/Oポートからのコールバックの禁止
+ *  SIOポートからのコールバックの禁止
  */
 void
 sio_dis_cbr(SIOPCB *siopcb, uint_t cbrtn)
@@ -149,7 +149,7 @@ sio_dis_cbr(SIOPCB *siopcb, uint_t cbrtn)
 }
 
 /*
- *  シリアルI/Oポートからの送信可能コールバック
+ *  SIOポートからの送信可能コールバック
  */
 void
 uart_pl011_irdy_snd(intptr_t exinf)
@@ -158,10 +158,52 @@ uart_pl011_irdy_snd(intptr_t exinf)
 }
 
 /*
- *  シリアルI/Oポートからの受信通知コールバック
+ *  SIOポートからの受信通知コールバック
  */
 void
 uart_pl011_irdy_rcv(intptr_t exinf)
 {
 	sio_irdy_rcv(exinf);
+}
+
+/*
+ *		システムログの低レベル出力（本来は別のファイルにすべき）
+ */
+
+/*
+ *  低レベル出力用のSIOポート管理ブロック
+ */
+static SIOPCB	*p_siopcb_target_fput;
+
+/*
+ *  SIOポートの初期化
+ */
+void
+target_fput_initialize(void)
+{
+	p_siopcb_target_fput = uart_pl011_opn_por(SIOPID_FPUT, 0);
+}
+
+/*
+ *  SIOポートへのポーリング出力
+ */
+static void
+ct11mpcore_uart_fput(char c)
+{
+	/*
+	 *  送信できるまでポーリング
+	 */
+	while (!(uart_pl011_snd_chr(p_siopcb_target_fput, c))) ;
+}
+
+/*
+ *  SIOポートへの文字出力
+ */
+void
+target_fput_log(char c)
+{
+	if (c == '\n') {
+		ct11mpcore_uart_fput('\r');
+	}
+	ct11mpcore_uart_fput(c);
 }

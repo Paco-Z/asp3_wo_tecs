@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf4.c 509 2016-01-12 06:06:14Z ertl-hiro $
+ *  $Id: perf4.c 964 2018-05-02 07:53:57Z ertl-hiro $
  */
 
 /*
@@ -78,8 +78,13 @@
  */
 void task1(intptr_t exinf)
 {
-	end_measure(2);
-	ext_tsk();
+	ER		ercd;
+
+	ercd = end_measure(2);
+	check_ercd(ercd, E_OK);
+
+	ercd = ext_tsk();
+	check_ercd(ercd, E_OK);
 }
 
 /*
@@ -92,9 +97,14 @@ volatile uint_t		task2_count;
  */
 void task2(intptr_t exinf)
 {
-	end_measure(3);
+	ER		ercd;
+
+	ercd = end_measure(3);
+	check_ercd(ercd, E_OK);
+
 	task2_count++;
-	ext_tsk();
+	ercd = ext_tsk();
+	check_ercd(ercd, E_OK);
 }
 
 /*
@@ -102,7 +112,10 @@ void task2(intptr_t exinf)
  */
 void task3(intptr_t exinf)
 {
-	ext_tsk();
+	ER		ercd;
+
+	ercd = ext_tsk();
+	check_ercd(ercd, E_OK);
 }
 
 /*
@@ -110,18 +123,41 @@ void task3(intptr_t exinf)
  */
 void task4(intptr_t exinf)
 {
+	ER		ercd;
+
 	while (true) {
-		wup_tsk(MAIN_TASK);
+		ercd = wup_tsk(MAIN_TASK);
+		check_ercd(ercd, E_OK);
 	}
 }
+
+/*
+ *  計測タスク2とメインタスクの共有変数
+ */
+volatile uint_t		cyclic_handler_error_count;
 
 /*
  *  周期ハンドラ
  */
 void cyclic_handler(intptr_t exinf)
 {
-	begin_measure(3);
-	act_tsk(TASK2);
+	T_RTSK	rtsk;
+	ER		ercd;
+
+	ercd = begin_measure(3);
+	check_ercd(ercd, E_OK);
+
+	ercd = act_tsk(TASK2);
+	if (ercd == E_QOVR) {
+		/*
+		 *  シミュレーション環境などで，TASK2の起動が遅れると，E_QOVR
+		 *  エラーになる可能性がある．
+		 */
+		cyclic_handler_error_count++;
+	}
+	else {
+		check_ercd(ercd, E_OK);
+	}
 }
 
 /*
@@ -130,21 +166,34 @@ void cyclic_handler(intptr_t exinf)
 void main_task(intptr_t exinf)
 {
 	uint_t	i;
+	ER		ercd;
 
 	syslog_0(LOG_NOTICE, "Performance evaluation program (4)");
-	init_hist(1);
-	init_hist(2);
-	init_hist(3);
+	ercd = init_hist(1);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(2);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(3);
+	check_ercd(ercd, E_OK);
 
 	/*
 	 *  タスクコンテキストから呼び出し，タスク切換えを起こさない
 	 *  act_tskの処理時間の測定
 	 */
 	for (i = 0; i < NO_MEASURE; i++) {
-		begin_measure(1);
-		act_tsk(TASK3);
-		end_measure(1);
-		slp_tsk();
+		ercd = begin_measure(1);
+		check_ercd(ercd, E_OK);
+
+		ercd = act_tsk(TASK3);
+		check_ercd(ercd, E_OK);
+
+		ercd = end_measure(1);
+		check_ercd(ercd, E_OK);
+
+		ercd = slp_tsk();
+		check_ercd(ercd, E_OK);
 	}
 
 	/*
@@ -152,8 +201,11 @@ void main_task(intptr_t exinf)
 	 *  理時間の測定
 	 */
 	for (i = 0; i < NO_MEASURE; i++) {
-		begin_measure(2);
-		act_tsk(TASK1);
+		ercd = begin_measure(2);
+		check_ercd(ercd, E_OK);
+
+		ercd = act_tsk(TASK1);
+		check_ercd(ercd, E_OK);
 	}
 
 	/*
@@ -161,23 +213,37 @@ void main_task(intptr_t exinf)
 	 *  処理時間の測定（測定回数は10分の1）
 	 */
 	task2_count = 0;
-	sta_cyc(CYC1);
+	cyclic_handler_error_count = 0;
+
+	ercd = sta_cyc(CYC1);
+	check_ercd(ercd, E_OK);
+
 	while (task2_count < NO_MEASURE / 10) ;
-	stp_cyc(CYC1);
+	ercd = stp_cyc(CYC1);
+	check_ercd(ercd, E_OK);
 
 	/*
 	 *  測定結果の出力
 	 */
 	syslog_0(LOG_NOTICE,
 		"Execution times of act_tsk from task context without task switch");
-	print_hist(1);
+	ercd = print_hist(1);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE,
 		"Execution times of act_tsk from task context with task switch");
-	print_hist(2);
+	ercd = print_hist(2);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE,
 		"Execution times of act_tsk from non-task context with task switch");
-	print_hist(3);
+	ercd = print_hist(3);
+	check_ercd(ercd, E_OK);
+
+	if (cyclic_handler_error_count > 0) {
+		syslog_1(LOG_NOTICE,
+				"Number of E_QOVR errors : %d", cyclic_handler_error_count);
+	}
+
 	check_finish(0);
 }

@@ -1,5 +1,5 @@
 PACKAGE asp3_arch_arm_gcc
-VERSION 3.1.0
+VERSION 3.3.1
 
 MANIFEST
 
@@ -7,6 +7,7 @@ doc/arm_design.txt
 doc/arm_user.txt
 doc/gic_design.txt
 
+common/Makefile.core
 common/arm.c
 common/arm.h
 common/arm_insn.h
@@ -30,12 +31,12 @@ common/core_unrename.h
 common/gic_kernel_impl.c
 common/gic_kernel_impl.h
 common/gic_support.S
-common/Makefile.core
 common/pl310.c
 common/pl310.h
 common/sp804.h
 common/start.S
-common/uart_pl011.c
+common/tUartPL011.c
+common/tUartPL011.cdl
 common/uart_pl011.h
 
 INCLUDE mpcore/MANIFEST

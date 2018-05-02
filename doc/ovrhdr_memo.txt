@@ -1,0 +1,531 @@
+													TOPPERS Confidential
+		TOPPERSプロジェクト ディスカッションメモ
+		オーバランハンドラに関する設計メモ
+
+		作成者: 高田広章（名古屋大学）
+		最終更新: 2015年8月21日
+
+○メモの位置付け
+
+このドキュメントは，TOPPERS/ASP3カーネルのオーバランハンドラ機能拡張に
+関する設計メモである．
+
+○データ型と定数の定義
+
+プロセッサ時間を表現するデータ型PRCTIMの定義を，t_stddef.hに含める．
+
+----------------------------------------
+typedef	uint32_t		PRCTIM;		/* プロセッサ時間 */
+----------------------------------------
+
+残りプロセッサ時間に指定できる最大値は，ターゲット依存部（target_kernel.h
+またはそこからインクルードされるファイル）で定義するものとするが，デフォ
+ルトの定義をkernel.hに含める．
+
+----------------------------------------
+#ifndef TMAX_OVRTIM
+#define TMAX_OVRTIM		UINT32_MAX
+#endif /* TMAX_OVRTIM */
+----------------------------------------
+
+また，オーバランハンドラのデータ型OVRHDRの定義を，kernel.hに含める．
+
+----------------------------------------
+typedef void	(*OVRHDR)(ID tskid, intptr_t exinf);
+----------------------------------------
+
+この他に，オーバランハンドラ機能のサービスコールの宣言と関連する定数の
+定義を，kernelに含める．
+
+○用いるハードウェア資源とサポートできない場合の措置
+
+オーバランハンドラを実現するために，システム時刻を進めるための高分解能
+タイマとは別のタイマ（以下，これをオーバランタイマと呼ぶ）を用いる．そ
+のため，ターゲットによっては，オーバランハンドラをサポートできない場合
+も考えられる．
+
+そこで，オーバランハンドラをサポートできる場合には，ターゲット依存部に
+おいて，TOPPERS_TARGET_SUPPORT_OVRHDRをマクロ定義するものとする．
+
+オーバランハンドラ機能拡張のkernel.hでは，TOPPERS_TARGET_SUPPORT_OVRHDR
+がマクロ定義されていれば，TOPPERS_SUPPORT_OVRHDRを定義する．
+
+----------------------------------------
+#ifdef TOPPERS_TARGET_SUPPORT_OVRHDR
+#define TOPPERS_SUPPORT_OVRHDR			/* オーバランハンドラ機能拡張 */
+#endif /* TOPPERS_TARGET_SUPPORT_OVRHDR */
+----------------------------------------
+
+オーバランハンドラ機能は，TOPPERS_SUPPORT_OVRHDRが定義されている場合の
+み組み込む．これにより，オーバランハンドラ機能拡張を使用し，ターゲット
+依存部がオーバランハンドラをサポートしている場合のみ，オーバランハンド
+ラ機能が組み込まれることになる．
+
+○オーバランハンドラに関連するデータ構造
+
+オーバランハンドラを実装するために，TCBに，オーバランハンドラが動作状態
+であることを示すフィールドstaovrと，残りプロセッサ時間を表すフィールド
+leftotmを追加する（task.h）．
+
+----------------------------------------
+typedef struct task_control_block {
+	...
+	BIT_FIELD_BOOL	staovr : 1;		/* オーバランハンドラ動作状態 */
+	...
+	PRCTIM			leftotm;		/* 残りプロセッサ時間 */
+	...
+} TCB;
+----------------------------------------
+
+オーバランハンドラの動作状態は，タスクの登録時とタスクが休止状態に遷移
+する時に，動作していない状態に初期化される［NGKI2587］ことから，
+make_dormantの中でstaovrをfalseに初期化する（task.c）．
+
+----------------------------------------
+void
+make_dormant(TCB *p_tcb)
+{
+	...
+	p_tcb->staovr = false;
+	...
+}
+----------------------------------------
+
+オーバランハンドラに対しては，管理ブロックは必要なく，DEF_OVRで定義した
+情報を格納した初期化ブロックのみを用意する．初期化ブロックも，単一の要
+素で十分であり，配列である必要はない（overrun.h）．
+
+----------------------------------------
+typedef struct overrun_handler_initialization_block {
+	ATR			ovratr;			/* オーバランハンドラ属性 */
+	OVRHDR		ovrhdr;			/* オーバランハンドラの起動番地 */
+} OVRINIB;
+----------------------------------------
+extern const OVRINIB	ovrinib;
+----------------------------------------
+
+オーバランタイマが動作中かを示すフラグとして，boot_t型の変数
+ovrtimer_flagを用意する（overrun.h，overrun.c）．
+
+----------------------------------------
+extern boot_t	ovrtimer_flag;
+----------------------------------------
+
+シングルプロセッサの場合には，オーバランタイマが動作中かは，次の方法で
+判別することができる．
+
+	タスクコンテキストでは，
+		(p_runtsk != NULL && p_runtsk->staovr)の時のみ動作している．
+	非タスクコンテキストでは，動作していない．
+
+そのため，このフラグを用いない実装も可能であるが，マルチプロセッサへの
+拡張性やターゲット依存性を下げるために，これを用いる実装としている（実
+際，Mac OS Xターゲット依存部では，これを活用している）．
+
+ovrtimer_flagを用いることにしたことから，割込み／CPU例外出入口処理にお
+いて，p_runtskがNULLであるかどうかをチェックせずに，ovrtimer_stopを呼ぶ
+こととしている（ターゲット依存部 ポーティングガイド）．
+
+○残りプロセッサ時間の保存／復帰処理の内容
+
+ディスパッチャおよび割込み処理／CPU例外処理の出入口で，タスクの残りプロ
+セッサ時間を保存／復帰する必要がある．具体的には，以下のような処理が必
+要である．
+
+(a) dispatchへの入口
+
+ovrtimer_flagがtrueであれば（または，p_runtsk->staovrがtrueであれば），
+オーバランタイマを停止させ，残りプロセッサ時間をp_runtsk->leftotmに格納
+する．残りプロセッサ時間がなくなっていた場合には，p_runtsk->leftotmに0
+を格納する．
+
+(b) dispatchからの出口
+
+p_runtsk->staovrがtrueであれば，残りプロセッサ時間をp_runtsk->leftotmと
+してオーバランタイマを動作開始する．
+
+(c) 割込み処理／CPU例外処理の入口
+
+タスクコンテキストで割込み／CPU例外が発生した場合に，ovrtimer_flagが
+trueであれば（または，p_runtskがNULLでなく，p_runtsk->staovrがtrueであ
+れば），オーバランタイマを停止させ，残りプロセッサ時間を
+p_runtsk->leftotmに格納する．残りプロセッサ時間がなくなっていた場合には，
+p_runtsk->leftotmに0を格納する．
+
+この処理は，カーネル管理の割込みをすべて禁止した状態で行う必要がある．
+割込み／CPU例外発生直後にすべての割込みが禁止されないプロセッサでは，割
+込みを禁止した後にこの処理を行う必要がある．
+
+(d) 割込み処理／CPU例外処理の出口
+
+タスクコンテキストに戻る場合に，p_runtskがNULLでなく，p_runtsk->staovr
+がtrueであれば，残りプロセッサ時間をp_runtsk->leftotmとしてオーバランタ
+イマを動作開始する．
+
+(e) タスクの終了時
+
+ovrtimer_flagがtrueであれば（または，p_runtsk->staovrがtrueであれば），
+オーバランタイマを停止させる．残りプロセッサ時間をp_runtsk->leftotmに格
+納する必要はない（タスクが終了すると，オーバランハンドラは停止するた
+め）．
+
+(f) タスクの実行開始時
+
+p_runtsk->staovrがtrueであれば，残りプロセッサ時間をp_runtsk->leftotmと
+してオーバランタイマを動作開始する．
+
+○ターゲット依存部のインタフェース
+
+オーバランハンドラ機能のターゲット依存部では，オーバランハンドラ用のタ
+イマ（以下，オーバランタイマと呼ぶ）を操作するための機能を提供する．
+
+まず，次の定数をマクロ定義する．
+
+(1) TMAX_OVRTIM
+
+残りプロセッサ時間としてオーバランハンドラ用タイマに設定できる最大の値．
+単位はマイクロ秒とする．ターゲット依存部で定義しない場合には，kernel.h
+でUINT32_MAXに定義する．
+
+また，次の5つの関数を用意する．
+
+(1) void target_ovrtimer_initialize(intptr_t exinf)
+
+オーバランタイマの初期化処理を行う．タイマの動作開始は行わない．
+
+この関数は，target_timer.cfg中に記述する静的APIにより，初期化ルーチンと
+してカーネルに登録することを想定している．
+
+(2) void target_ovrtimer_terminate(intptr_t exinf)
+
+オーバランタイマの停止処理を行う．
+
+この関数は，target_timer.cfg中に記述する静的APIにより，終了処理ルーチン
+としてカーネルに登録することを想定している．
+
+(3) void target_ovrtimer_start(PRCTIM ovrtim)
+
+オーバランタイマを，ovrtimで指定した時間が経過したら割込みが発生するよ
+うに設定し，動作開始する．ovrtimが0の場合は，できる限り早くオーバランタ
+イマ割込みを発生させる．ovrtimの単位はマイクロ秒とする．
+
+(4) PRCTIM target_ovrtimer_stop(void)
+
+オーバランタイマを停止し，タイマの残り時間（割込み発生までの時間）を返
+す．残り時間がなくなっていた場合には，0を返す．また，オーバランタイマか
+らの割込み要求をクリアする（クリアしないとスプリアス割込みが発生するが，
+クリアすることは必須ではない）．
+
+(5) PRCTIM target_ovrtimer_get_current(void)
+
+オーバランタイマの残り時間（割込み発生までの時間）を読み出す．残り時間
+がなくなっていた場合には，0を返す．オーバランタイマからの割込みはクリア
+しない．
+
+○残りプロセッサ時間の保存／復帰の実装（ターゲット非依存部）
+
+まず，(a)と(b)を実現する関数ovrtimer_stopとovrtimer_startをターゲット非
+依存部に設け，ターゲット依存部の該当箇所から呼び出すようにする．
+
+----------------------------------------
+void
+ovrtimer_stop(void)
+{
+	if (ovrtimer_flag) {
+		assert(p_rutsk != NULL && p_runtsk->staovr);
+		p_runtsk->leftotm = target_ovrtimer_stop();
+		ovrtimer_flag = false;
+	}
+}
+----------------------------------------
+void
+ovrtimer_start(void)
+{
+	if (p_runtsk->staovr) {
+		target_ovrtimer_start(p_runtsk->leftotm);
+		ovrtimer_flag = true;
+	}
+}
+----------------------------------------
+
+
+(c)は，(a)と同じ処理内容であるため，ovrtimer_stopを呼び出せばよい．(d)
+は，p_runtskがNULLでない場合に，ovrtime_startを呼び出すように実現すれば
+よい．
+
+(e)は，残りプロセッサ時間をp_runtsk->leftotmに格納する必要がない点で
+(a)と処理内容が異なるため，ext_tskとena_terに次の修正を加える
+（task_term.c）．task_terminateの中で，TCB中のstaovrを初期化するため，
+それを呼ぶ前にオーバランタイマの停止処理を入れる必要がある．
+
+----------------------------------------
+ER
+ext_tsk(void)
+{
+	...
+#ifdef TOPPERS_SUPPORT_OVRHDR
+	if (p_runtsk->staovr) {
+		(void) target_ovrtimer_stop();
+		ovrtimer_flag = false;
+	}
+#endif /* TOPPERS_SUPPORT_OVRHDR */
+	(void) task_terminate(p_runtsk);
+	exit_and_dispatch();
+	...
+}
+----------------------------------------
+ER
+ena_ter(void)
+{
+		...
+#ifdef TOPPERS_SUPPORT_OVRHDR
+		if (p_runtsk->staovr) {
+			(void) target_ovrtimer_stop();
+			ovrtimer_flag = false;
+		}
+#endif /* TOPPERS_SUPPORT_OVRHDR */
+		(void) task_terminate(p_runtsk);
+		exit_and_dispatch();
+		...
+}
+----------------------------------------
+
+(f)は(b)と同じ処理内容であるため，ovrtimer_startを呼び出せばよい．
+
+○残りプロセッサ時間の保存／復帰の実装（ターゲット依存部）
+
+(a) dispatchへの入口
+
+----------------------------------------
+void
+dispatch(void)
+{
+|#ifdef TOPPERS_SUPPORT_OVRHDR
+|	ovrtimer_stop();					/* オーバランタイマの停止 */
+|#endif /* TOPPERS_SUPPORT_OVRHDR */
+	スクラッチレジスタを除くすべてのレジスタをスタックに保存する
+	...
+}
+----------------------------------------
+
+(b) dispatchからの出口
+
+----------------------------------------
+void
+dispatch(void)
+{
+	...
+
+  dispatch_r:
+	スクラッチレジスタを除くすべてのレジスタをスタックから復帰する
+|#ifdef TOPPERS_SUPPORT_OVRHDR
+|	ovrtimer_start();					/* オーバランタイマの動作開始 */
+|#endif /* TOPPERS_SUPPORT_OVRHDR */
+	calltex(); … (*b)
+}
+----------------------------------------
+
+(c) 割込み処理／CPU例外処理の入口
+
+割込み処理／CPU例外処理の入口は次の通りに修正する．
+
+----------------------------------------
+void
+<割込みの出入口処理>(void)
+{
+	少なくともカーネル管理の割込みを禁止した状態にする … (*f)
+	スクラッチレジスタをスタックに保存する
+	if (タスクコンテキストで割込み発生) {
+|#ifdef TOPPERS_SUPPORT_OVRHDR
+|		ovrtimer_stop();				/* オーバランタイマの停止 */
+|#endif /* TOPPERS_SUPPORT_OVRHDR */
+		dspflgをスタックに保存する
+		dspflg = false;
+		スタックを非タスクコンテキスト用のスタックに切り換え，
+								非タスクコンテキストに切り換える
+	}
+	...
+}
+----------------------------------------
+void
+<CPU例外の出入口処理>(void)
+{
+		if (タスクコンテキストでCPU例外発生) {
+			（少なくとも）カーネル管理の割込みを禁止した状態にする
+|#ifdef TOPPERS_SUPPORT_OVRHDR
+|			ovrtimer_stop();			/* オーバランタイマの停止 */
+|#endif /* TOPPERS_SUPPORT_OVRHDR */
+			dspflgをスタックに保存する
+			dspflg = false;
+			スタックを非タスクコンテキスト用のスタックに切り換え，
+									非タスクコンテキストに切り換える
+		}
+		...
+}
+----------------------------------------
+
+(d) 割込み処理／CPU例外処理の出口
+
+割込み処理／CPU例外処理の出口は次の通りに修正する．
+
+----------------------------------------
+void
+<割込みの出入口処理>(void)
+{
+	...
+
+		  ret_int_r:
+			スクラッチレジスタを除くすべてのレジスタをスタックから復帰する
+		}
+|#ifdef TOPPERS_SUPPORT_OVRHDR
+|		if (p_runtsk != NULL) {
+|			ovrtimer_start();			/* オーバランタイマの動作開始 */
+|		}
+|#endif /* TOPPERS_SUPPORT_OVRHDR */
+	}
+	...
+}
+----------------------------------------
+void
+<CPU例外の出入口処理>(void)
+{
+	...
+
+			  ret_exc_r:
+				スクラッチレジスタを除くすべてのレジスタをスタックから復帰する
+			}
+|#ifdef TOPPERS_SUPPORT_OVRHDR
+|			if (p_runtsk != NULL) {
+|				ovrtimer_start();		/* オーバランタイマの動作開始 */
+|			}
+|a#endif /* TOPPERS_SUPPORT_OVRHDR */
+		}
+		CPU例外処理からのリターン後に，CPUロック解除状態に戻るように準備する
+	}
+	...
+}
+----------------------------------------
+
+(e) タスクの終了時
+
+ターゲット非依存部のext_tskとena_terで対応した．
+
+(f) タスクの実行開始時
+
+----------------------------------------
+void
+activate_context(TCB *p_tcb)
+{
+	...
+
+  start_r:
+|#ifdef TOPPERS_SUPPORT_OVRHDR
+|	ovrtimer_start();					/* オーバランタイマの動作開始 */
+|#endif /* TOPPERS_SUPPORT_OVRHDR */
+	CPUロック解除状態にする
+	自タスク（p_runtsk）の起動番地を，拡張情報をパラメータとして呼び出す
+	ext_tskに分岐する ... (*c)
+}
+----------------------------------------
+
+○オーバランハンドラの呼出しの実装
+
+オーバランタイマが満了し，割込みが発生した場合には，ターゲット依存部の
+割込みハンドラ（または，割込みサービスルーチン）から，ターゲット非依存
+部のcall_ovrhdrを呼び出す．
+
+ここで，オーバランタイマ割込みハンドラの起動と，sta_ovr／stp_ovrの呼出
+しの競合の問題がある．具体例として，オーバランタイマが満了した直後に，
+他の高優先度の割込みが発生し，その処理中でオーバランハンドラが再動作開
+始（残りプロセッサは更新される）された場合や停止された場合が問題になる．
+この場合，オーバランタイマ割込みハンドラの中で，オーバランハンドラを呼
+び出さないようにすべきである．
+
+ターゲット非依存部のcall_ovrhdrの実装は次の通り．
+
+----------------------------------------
+void
+call_ovrhdr(void)
+{
+	assert(sense_context());
+	assert(!sense_lock());
+	assert(ovrinib.ovrhdr != NULL);
+
+	lock_cpu();
+	if (p_runtsk != NULL && p_runtsk->staovr && p_runtsk->leftotm == 0U) {
+		p_runtsk->staovr = false;
+		unlock_cpu();
+
+		LOG_OVR_ENTER(p_runtsk);
+		((OVRHDR)(ovrinib.ovrhdr))(TSKID(p_runtsk), p_runtsk->p_tinib->exinf);
+		LOG_OVR_LEAVE(p_runtsk);
+	}
+	else {
+		/*
+		 *  このルーチンが呼び出される前に，オーバランハンドラの起動が
+		 *  キャンセルされた場合
+		 */
+		unlock_cpu();
+	}
+}
+----------------------------------------
+
+p_runtskがNULLの場合を考慮しているのは，スプリアス割込みに対するロバス
+ト性を確保するためである．
+
+オーバランハンドラの呼出し後に，呼出し前の状態（CPUロック，割込み優先度
+マスク）に戻さないのは，このルーチンからのリターン後に，割込み出口処理
+で元の状態に戻すためである．
+
+call_ovrhdrは，割込みハンドラから（または，割込みハンドラとして）呼び出
+されるため，このルーチンに来るまでに，ovrtimer_stopが呼ばれている（すな
+わち，オーバランタイマが停止している）．
+
+割込みハンドラの設定は，以下のような静的APIを，target_timer.h中に記述す
+ることで行うものとする（ターゲットの事情で変更してよい）．
+
+----------------------------------------
+#ifdef TOPPERS_SUPPORT_OVRHDR
+ATT_INI({ TA_NULL, 0, target_ovrtimer_initialize });
+ATT_TER({ TA_NULL, 0, target_ovrtimer_terminate });
+CFG_INT(INTNO_OVRTIMER, { TA_ENAINT | INTATR_OVRTIMER, INTPRI_OVRTIMER });
+DEF_INH(INHNO_OVRTIMER, { TA_NULL, target_ovrtimer_handler });
+#endif /* TOPPERS_SUPPORT_OVRHDR */
+----------------------------------------
+
+これらの静的API中の，INHNO_OVRTIMER，INTNO_OVRTIMER，INTPRI_OVRTIMER，
+INTATR_OVRTIMERの4つの定数は，target_timer.h中で定義する．
+
+○オーバヘッドの低減方法
+
+以上で説明した方法では，ターゲット依存部のアセンブリ言語で記述すること
+を想定したコードから，ターゲット非依存部のovrtimer_startと
+ovrtimer_stopを呼び出しているが，これらの関数は短いもので，アセンブリ言
+語の中に展開した方が効率がよい．これらの関数をアセンブリ言語の中に展開
+する場合には，それぞれ，OMIT_OVRTIMER_STARTとOMIT_OVRTIMER_STOPをマクロ
+定義する．
+
+○マルチプロセッサ対応カーネルへの対応に関するメモ
+
+マルチプロセッサ対応カーネルにおいて，sta_ovr，stp_ovrを，呼び出した処
+理単位と異なるプロセッサに割り付けられたタスクを対象に発行した場合の実
+装は工夫を要する．
+
+基本的には，対象タスクが割り付けられたプロセッサに対してプロセッサ間割
+込みをかけることによって，対象タスクのオーバランハンドラの動作を開始／
+停止させることが必要である．
+
+○Mac OS Xターゲット依存部に関するメモ
+
+Mac OS Xターゲット依存部では，割込み処理／CPU例外処理出口からリターンし
+た直後，dispatch_handlerが動作する前に，他の割込み処理が実行される場合
+があり，その場合には，ovrtimer_stopが続けて呼び出される状況が生じる．ター
+ゲット非依存部でovrtimer_flagを用いることで，ovrtimer_stopが続けて呼び
+出されても問題ないようになっているため，この実装で差し支えない．
+
+ターゲット非依存部でovrtimer_flagを用いない場合，割込み処理／CPU例外出
+口処理でタスク切換えを行う場合に，切換え前のタスクに対してオーバランハ
+ンドラを動作開始し，直後に停止するという（ムダな）処理を行う実装が考え
+られる．
+
+以上

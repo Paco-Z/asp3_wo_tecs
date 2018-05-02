@@ -6,6 +6,8 @@ Makefile.target
 MANIFEST
 nucleo_f401re.h
 stm32f401re.ld
+target.cdl
+target.tf
 target_asm.inc
 target_cfg1_out.h
 target_check.trb
@@ -16,8 +18,6 @@ target_kernel_impl.c
 target_kernel_impl.h
 target_rename.def
 target_rename.h
-target_serial.cfg
-target_serial.h
 target_sil.h
 target_stddef.h
 target_syssvc.h
@@ -27,6 +27,10 @@ target_timer.cfg
 target_timer.h
 target_unrename.h
 target_user.txt
+tPutLogTarget.c
+tPutLogTarget.cdl
+tSIOPortTarget.cdl
+tSIOPortTargetMain_inline.h
 
 stm32fcube/stm32f4xx_hal_conf.h
 stm32fcube/stm32f4xx_nucleo.c
@@ -34,17 +38,17 @@ stm32fcube/stm32f4xx_nucleo.h
 stm32fcube/system_stm32f4xx.c
 stm32fcube/systemclock_config.c
 
-truestudio/asp3/asp_debug.launch
-truestudio/asp3/Makefile
-truestudio/asp3/sample1.c
-truestudio/asp3/sample1.cfg
-truestudio/asp3/sample1.h
-truestudio/asp3/.cproject
-truestudio/asp3/.project
+truestudio/asp/asp_debug.launch
+truestudio/asp/Makefile
+truestudio/asp/sample1.c
+truestudio/asp/sample1.cfg
+truestudio/asp/sample1.h
+truestudio/asp/.cproject
+truestudio/asp/.project
 
-truestudio/asp3/.settings/com.atollic.truestudio.debug.hardware_device.prefs
-truestudio/asp3/.settings/com.atollic.truestudio.tsp.prefs
-truestudio/asp3/.settings/language.settings.xml
-truestudio/asp3/.settings/org.eclipse.core.resources.prefs
+truestudio/asp/.settings/com.atollic.truestudio.debug.hardware_device.prefs
+truestudio/asp/.settings/com.atollic.truestudio.tsp.prefs
+truestudio/asp/.settings/language.settings.xml
+truestudio/asp/.settings/org.eclipse.core.resources.prefs
 
 truestudio/asp/deps/dummy.txt

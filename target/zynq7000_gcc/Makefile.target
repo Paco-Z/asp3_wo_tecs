@@ -1,7 +1,7 @@
 #
 #		Makefileのターゲット依存部（Zynq7000用）
 #
-#  $Id: Makefile.target 572 2016-02-01 14:40:09Z ertl-hiro $
+#  $Id: Makefile.target 818 2017-07-26 06:44:34Z ertl-honda $
 # 
 
 #
@@ -22,7 +22,6 @@ endif
 #  各セグメントの開始アドレスの定義
 #
 TEXT_START_ADDRESS=0x00100000
-
 
 #
 #  MPCoreの種類の定義
@@ -47,15 +46,14 @@ KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o pl310.o target_timer.o
 #  システムサービスに関する定義
 #
 SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/arm_gcc/common
-SYSSVC_COBJS := $(SYSSVC_COBJS) target_serial.o
+SYSSVC_COBJS := $(SYSSVC_COBJS)
 
 #
 #  トレースログ記録のサンプルコードに関する定義
 #
 ifdef ENABLE_TRACE
 	COPTS := $(COPTS) -DTOPPERS_ENABLE_TRACE
-	KERNEL_DIRS := $(KERNEL_DIRS) $(SRCDIR)/arch/logtrace
-	KERNEL_COBJS := $(KERNEL_COBJS) trace_config.o trace_dump.o
+	SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/tracelog
 endif
 
 #

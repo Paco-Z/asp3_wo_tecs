@@ -1,11 +1,18 @@
 
-	TOPPERS/ASP3 Kernel（Release 3.2）without TECS
+	TOPPERS/ASP3 Kernel（Release 3.3）without TECS
 		Toyohashi Open Platform for Embedded Real-Time Systems/
 		Advanced Standard Profile Kernel
 
-本パッケージは，ASP3カーネルからTECS関連のファイルを外し，ASPカーネル
-と互換のシステムサービス機能と組み合わせて動作するように変更したもので
-ある．
+本パッケージは，ASP3カーネルに付属の非TECS版のパッチを適用してTECSを用
+いずにシステムサービス機能を呼び出すように変更したものである．ASP3カー
+ネルに付属の非TECS版のパッチを適用した場合と以下の点が異なっている．
+
+・非TECS版では不要なファイルの削除
+・./extension/non_tecs の削除
+・./sample/sample1.cfg を ./extension/non_tecs/sample/sample1_non_tecs.cfg の内容に置き換え
+・./sample/Makefile でOMIT_TECS を trueに定義
+・./target/macosx_xcode を削除
+・./target/test_hrt_macosx_xcode を削除
 
 TOPPERS/ASP3カーネル（TOPPERS/ASPカーネル Release 3.X．以下，ASP3カーネ
 ル）は，TOPPERS/ASPカーネルを拡張・改良したもので，TOPPERS第3世代カーネ
@@ -42,6 +49,10 @@ ASP3カーネルをより良いものにするためのご意見等を歓迎し�
 TOPPERS開発者メーリングリスト（dev@toppers.jp）宛またはASP3カーネルのバ
 グトラッキングシステム（Trac）に，その他の方はTOPPERSユーザーズメーリン
 グリスト（users@toppers.jp）宛にお願いします．
+
+これらのメーリングリストに投稿されたメールは，ウェブサイトのメーリング
+リストアーカイブから読むことができますので，公開すべきでない情報（個人
+情報など）をメール中に含めないように注意をお願いします．
 
 TOPPERSユーザーズメーリングリストへの登録方法については，以下のページに
 説明があります．

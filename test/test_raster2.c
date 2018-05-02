@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2014-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2014-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_raster2.c 740 2016-04-05 15:44:39Z ertl-hiro $
+ *  $Id: test_raster2.c 836 2017-10-16 11:53:43Z ertl-hiro $
  */
 
 /* 
@@ -103,7 +103,8 @@
  * 【テストシーケンス】
  *
  *	== TASK1 ==
- *	1:	sta_alm(ALM1, TEST_TIME_PROC) ... ALM1-1が実行開始するまで
+ *	1:	sta_alm(ALM1, TEST_TIME_PROC * 2) ... ALM1-1が実行開始するまで
+ *										  ... * 2 しないと，時々エラーになる
  *		slp_tsk()
  *	== ALM1-1（1回目）==
  *	2:	dis_ter() -> E_CTX							... (A-1)
@@ -318,7 +319,7 @@ task1(intptr_t exinf)
 	test_start(__FILE__);
 
 	check_point(1);
-	ercd = sta_alm(ALM1, TEST_TIME_PROC);
+	ercd = sta_alm(ALM1, TEST_TIME_PROC * 2);
 	check_ercd(ercd, E_OK);
 
 	ercd = slp_tsk();

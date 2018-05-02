@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf2.c 509 2016-01-12 06:06:14Z ertl-hiro $
+ *  $Id: perf2.c 964 2018-05-02 07:53:57Z ertl-hiro $
  */
 
 /*
@@ -65,26 +65,40 @@ perf_eval(uint_t n)
 	uint_t		i;
 	intptr_t	data;
 	PRI			pri;
+	ER			ercd;
 
-	ini_pdq(PDQ1);
-	init_hist(1);
+	ercd = ini_pdq(PDQ1);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(1);
+	check_ercd(ercd, E_OK);
 
 	for (i = 0; i < n; i++) {
 		data = i;
-		snd_pdq(PDQ1, data, 1);
+		ercd = snd_pdq(PDQ1, data, 1);
+		check_ercd(ercd, E_OK);
 	}
 
 	for (i = 0; i < NO_MEASURE; i++) {
 		data = i;
-		begin_measure(1);
-		snd_pdq(PDQ1, data, 2);
-		end_measure(1);
-		rcv_pdq(PDQ1, &data, &pri);
+
+		ercd = begin_measure(1);
+		check_ercd(ercd, E_OK);
+
+		ercd = snd_pdq(PDQ1, data, 2);
+		check_ercd(ercd, E_OK);
+
+		ercd = end_measure(1);
+		check_ercd(ercd, E_OK);
+
+		ercd = rcv_pdq(PDQ1, &data, &pri);
+		check_ercd(ercd, E_OK);
 	}
 
 	syslog_1(LOG_NOTICE, "Execution times of snd_pdq"
 								" when %d data are queued.", n);
-	print_hist(1);
+	ercd = print_hist(1);
+	check_ercd(ercd, E_OK);
 }
 
 /*

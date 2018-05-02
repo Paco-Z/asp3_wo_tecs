@@ -54,6 +54,13 @@
 #define intno1_clear()
 
 /*
+ *  テストプログラムで使用する時間パラメータに関する定義
+ */
+#ifdef TOPPERS_USE_QEMU
+#define TEST_TIME_CP	1000U
+#endif /* TOPPERS_USE_QEMU */
+
+/*
  *  コアで共通な定義（チップ依存部は飛ばす）
  */
 #include "core_test.h"

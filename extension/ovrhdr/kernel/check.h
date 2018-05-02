@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: check.h 801 2017-07-20 16:07:56Z ertl-hiro $
+ *  $Id: check.h 900 2018-03-03 17:53:19Z ertl-hiro $
  */
 
 /*
@@ -129,7 +129,7 @@
 } while (false)
 
 /*
- *  オブジェクトIDのチェック（E_ID）
+ *  不正ID番号のチェック（E_ID）
  */
 #define CHECK_ID(exp) do {									\
 	if (!(exp)) {											\
@@ -149,7 +149,7 @@
 } while (false)
 
 /*
- *  不正使用エラーのチェック（E_ILUSE）
+ *  サービスコール不正使用のチェック（E_ILUSE）
  */
 #define CHECK_ILUSE(exp) do {								\
 	if (!(exp)) {											\
@@ -159,7 +159,7 @@
 } while (false)
 
 /*
- *  静的なオブジェクト状態エラーのチェック（E_OBJ）
+ *  オブジェクト状態エラーのチェック（E_OBJ）
  */
 #define CHECK_OBJ(exp) do {									\
 	if (!(exp)) {											\

@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2014-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2014-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_raster1.c 756 2016-10-03 10:47:38Z ertl-hiro $
+ *  $Id: test_raster1.c 882 2018-02-01 09:55:37Z ertl-hiro $
  */
 
 /* 
@@ -108,7 +108,6 @@
  * 【テストシーケンス】
  *
  *	== TASK1 ==
- *		call(set_bit_service(get_bit_kernel()))
  *	1:	act_tsk(TASK2)
  *		sta_alm(ALM1, TEST_TIME_CP) ... ALM1が実行開始するまで
  *		slp_tsk()
@@ -280,8 +279,6 @@
 #include "kernel_cfg.h"
 #include "test_raster1.h"
 
-extern ER	bit_kernel(void);
-
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
@@ -309,8 +306,6 @@ task1(intptr_t exinf)
 	T_RMTX	rmtx;
 
 	test_start(__FILE__);
-
-	set_bit_service(get_bit_kernel());
 
 	check_point(1);
 	ercd = act_tsk(TASK2);

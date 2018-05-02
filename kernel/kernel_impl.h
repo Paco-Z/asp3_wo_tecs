@@ -131,6 +131,11 @@
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
+ *  TECSの初期化（init_tecs.c）
+ */
+extern void initialize_tecs(void);
+
+/*
  *  各モジュールの初期化（kernel_cfg.c）
  */
 extern void	initialize_object(void);

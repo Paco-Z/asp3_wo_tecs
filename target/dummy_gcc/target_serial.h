@@ -35,11 +35,11 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_serial.h 2 2014-01-11 03:50:35Z ertl-hiro $
+ *  $Id: target_serial.h 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
- *		シリアルI/Oデバイス（SIO）ドライバ（ダミーターゲット用）
+ *		シリアルインタフェースドライバのターゲット依存部（ダミーターゲット用）
  */
 
 #ifndef TOPPERS_TARGET_SERIAL_H
@@ -49,12 +49,12 @@
 #include <t_stddef.h>
 
 /*
- *  シリアルI/Oポート数の定義
+ *  SIOポート数の定義
  */
-#define TNUM_SIOP		1		/* サポートするシリアルI/Oポートの数 */
+#define TNUM_SIOP		1		/* サポートするSIOポートの数 */
 
 /*
- *  シリアルI/Oポートの割込み関連情報
+ *  SIOポートの割込み関連情報
  */
 #define INTNO_SIO		TINTNO_SIO		/* 割込み番号 */
 #define INTPRI_SIO		-1				/* 割込み優先度 */
@@ -63,7 +63,7 @@
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
- *  シリアルI/Oポート管理ブロックの定義
+ *  SIOポート管理ブロックの定義
  */
 typedef struct sio_port_control_block	SIOPCB;
 
@@ -84,12 +84,12 @@ extern void		sio_initialize(intptr_t exinf);
 extern void		sio_terminate(intptr_t exinf);
 
 /*
- *  シリアルI/Oポートのオープン
+ *  SIOポートのオープン
  */
 extern SIOPCB	*sio_opn_por(ID siopid, intptr_t exinf);
 
 /*
- *  シリアルI/Oポートのクローズ
+ *  SIOポートのクローズ
  */
 extern void		sio_cls_por(SIOPCB *p_siopcb);
 
@@ -99,32 +99,32 @@ extern void		sio_cls_por(SIOPCB *p_siopcb);
 extern void		sio_isr(intptr_t exinf);
 
 /*
- *  シリアルI/Oポートへの文字送信
+ *  SIOポートへの文字送信
  */
 extern bool_t	sio_snd_chr(SIOPCB *siopcb, char c);
 
 /*
- *  シリアルI/Oポートからの文字受信
+ *  SIOポートからの文字受信
  */
 extern int_t	sio_rcv_chr(SIOPCB *siopcb);
 
 /*
- *  シリアルI/Oポートからのコールバックの許可
+ *  SIOポートからのコールバックの許可
  */
 extern void		sio_ena_cbr(SIOPCB *siopcb, uint_t cbrtn);
 
 /*
- *  シリアルI/Oポートからのコールバックの禁止
+ *  SIOポートからのコールバックの禁止
  */
 extern void		sio_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
 
 /*
- *  シリアルI/Oポートからの送信可能コールバック
+ *  SIOポートからの送信可能コールバック
  */
 extern void		sio_irdy_snd(intptr_t exinf);
 
 /*
- *  シリアルI/Oポートからの受信通知コールバック
+ *  SIOポートからの受信通知コールバック
  */
 extern void		sio_irdy_rcv(intptr_t exinf);
 

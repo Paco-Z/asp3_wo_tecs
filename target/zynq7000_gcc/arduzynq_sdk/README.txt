@@ -6,12 +6,11 @@
 ----------------
 About
 ----------------
-本フォルダはXilinx SDKによりArduZYNQ向けにFMPをビルドして実行するため
-の手順をまとめたものである．
+本フォルダはXilinx SDKによりZYBO向けにFMPをビルドして実行するための手
+順をまとめたものである．
 
 画面ダンプ付きの同様の手順が以下にあるため参考にすること．
 
-http://qiita.com/exshonda/items/5593095db85e7c0fe30b
 
 ----------------
 Host environment
@@ -23,7 +22,7 @@ Host environment
   
 動作確認したXilinx SDKのバージョンは次の通りである．  
 
-  - Xilinx SDK (>2017.2)
+  - Xilinx SDK (>2016.3)
 
 ----------------
 Board Settig

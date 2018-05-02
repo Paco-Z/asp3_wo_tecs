@@ -21,7 +21,7 @@
 #undef target_ovrtimer_handler
 
 /*
- *  trace_config.c
+ *  tTraceLog.c
  */
 #undef log_dsp_enter
 #undef log_dsp_leave

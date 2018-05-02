@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2013-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.c 515 2016-01-13 02:21:39Z ertl-hiro $
+ *  $Id: target_kernel_impl.c 929 2018-03-27 13:16:12Z ertl-hiro $
  */
 
 /*
@@ -182,24 +182,5 @@ target_initialize(void)
 void
 target_exit(void)
 {
-	exit(0);
-}
-
-/*
- *  システムログの低レベル出力のための文字出力
- */
-void
-target_fput_log(char c)
-{
-	/* 文字cを表示/出力/保存する */
-}
-
-/*
- *  メイン関数
- */
-int
-main()
-{
-	sta_ker();
-	return(0);
+	while (true);
 }

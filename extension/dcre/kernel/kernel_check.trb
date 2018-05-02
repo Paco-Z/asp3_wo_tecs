@@ -5,7 +5,7 @@
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 #  
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: kernel_check.trb 662 2016-02-27 02:33:51Z ertl-hiro $
+#   $Id: kernel_check.trb 925 2018-03-24 08:59:01Z ertl-hiro $
 #  
 
 #
@@ -229,9 +229,8 @@ end
 # 
 tinib = SYMBOL("_kernel_tinib_table")
 $cfgData[:CRE_TSK].sort.each do |key, params|
-  task = PEEK(tinib + $offsetof_TINIB_task, $sizeof_TASK)
-
   # タスクの先頭番地のチェック［NGKI1033］
+  task = PEEK(tinib + $offsetof_TINIB_task, $sizeof_TASK)
   if (task & ($CHECK_FUNC_ALIGN - 1)) != 0
     error_wrong_id("E_PAR", params, :task, :tskid, "not aligned")
   end
@@ -336,14 +335,14 @@ if !istkAddr.nil?
 end
 
 # 
-#  カーネルが割り付けるメモリ領域に関するチェック
+#  カーネルメモリプール領域に関するチェック
 # 
-kmmAddr = SYMBOL("_kernel_kmm")
-if !kmmAddr.nil?
-  kmm = PEEK(kmmAddr, $sizeof_void_ptr)
+mpkAddr = SYMBOL("_kernel_mpk")
+if !mpkAddr.nil?
+  mpk = PEEK(mpkAddr, $sizeof_void_ptr)
 
-  # カーネルが割り付けるメモリ領域の先頭番地のチェック
-  if (kmm & ($CHECK_MB_ALIGN - 1)) != 0
-    error_wrong("E_PAR", $cfgData[:DEF_KMM][1], :kmm, "not aligned")
+  # カーネルメモリプール領域の先頭番地のチェック［NGKI5083］
+  if mpk != 0 && (mpk & ($CHECK_MB_ALIGN - 1)) != 0
+    error_wrong("E_PAR", $cfgData[:DEF_MPK][1], :mpk, "not aligned")
   end
 end

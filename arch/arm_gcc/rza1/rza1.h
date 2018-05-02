@@ -1,11 +1,11 @@
 /*
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
- *
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ * 
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
- *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
+ * 
+ *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
  *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
@@ -27,14 +27,14 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
- *  $Id: rza1.h 720 2016-04-01 22:16:17Z ertl-hiro $
+ * 
+ *  $Id: rza1.h 962 2018-04-30 22:52:38Z ertl-hiro $
  */
 
 /*
@@ -44,7 +44,9 @@
 #ifndef TOPPERS_RZA1_H
 #define TOPPERS_RZA1_H
 
+#include <kernel.h>
 #include <sil.h>
+#include "arm.h"
 
 /*
  *  型キャストを行うマクロの定義
@@ -81,6 +83,11 @@
  *  MPCore Private Memory Regionの先頭番地
  */
 #define MPCORE_PMR_BASE		0xf0000000
+
+/*
+ *  CP15の補助制御レジスタ（ACTLR）の設定値
+ */
+#define CP15_ACTLR_SMP		UINT_C(0x00000040)
 
 /*
  *  GIC依存部を使用するための定義
@@ -155,15 +162,6 @@
 #define SCIF5_BASE			0xe8009800
 #define SCIF6_BASE			0xe800a000
 #define SCIF7_BASE			0xe800a800
-#endif /* TOPPERS_RZA1H */
-
-/*
- *  サポートするシリアルポートの個数
- */
-#ifdef TOPPERS_RZA1H
-#define TNUM_SIOP  8
-#elif defined(TOPPERS_RZA1L)
-#define TNUM_SIOP  5
 #endif /* TOPPERS_RZA1H */
 
 /*
@@ -254,7 +252,18 @@
 
 #ifndef TOPPERS_MACRO_ONLY
 
-#include "kernel.h"
+/*
+ *  SMPモードに設定
+ */
+Inline void
+mpcore_enable_smp(void)
+{
+	uint32_t	reg;
+
+	CP15_READ_ACTLR(reg);
+	reg |= CP15_ACTLR_SMP;
+	CP15_WRITE_ACTLR(reg);
+}
 
 /*
  *  IRQ割込み要求のクリア

@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: interrupt.c 801 2017-07-20 16:07:56Z ertl-hiro $
+ *  $Id: interrupt.c 825 2017-09-01 13:17:37Z ertl-hiro $
  */
 
 /*
@@ -372,8 +372,7 @@ chg_ipm(PRI intpri)
 	lock_cpu();
 	t_set_ipm(intpri);							/*［NGKI3111］*/
 	if (intpri == TIPM_ENAALL && enadsp) {
-		dspflg = true;
-		p_schedtsk = search_schedtsk();
+		set_dspflg();
 		if (p_runtsk->raster && p_runtsk->enater) {
 #ifdef TOPPERS_SUPPORT_OVRHDR
 			if (p_runtsk->staovr) {

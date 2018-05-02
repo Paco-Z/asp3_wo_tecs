@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2008 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: logtask.h 120 2014-05-13 20:05:57Z ertl-hiro $
+ *  $Id: logtask.h 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -64,18 +63,6 @@ extern "C" {
 #ifndef LOGTASK_STACK_SIZE
 #define LOGTASK_STACK_SIZE	1024	/* スタック領域のサイズ */
 #endif /* LOGTASK_STACK_SIZE */
-
-#ifndef LOGTASK_PORTID
-#define LOGTASK_PORTID		1		/* システムログ用のシリアルポート番号 */
-#endif /* LOGTASK_PORTID */
-
-#ifndef LOGTASK_INTERVAL
-#define LOGTASK_INTERVAL	10000U	/* システムログタスクの動作間隔（μ秒）*/
-#endif /* LOGTASK_INTERVAL */
-
-#ifndef LOGTASK_FLUSH_WAIT
-#define LOGTASK_FLUSH_WAIT	1000U	/* フラッシュ待ちの単位時間（μ秒）*/
-#endif /* LOGTASK_FLUSH_WAIT */
 
 /*
  *  システムログ出力の待ち合わせ

@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_task1.c 756 2016-10-03 10:47:38Z ertl-hiro $
+ *  $Id: test_task1.c 882 2018-02-01 09:55:37Z ertl-hiro $
  */
 
 /* 
@@ -90,7 +90,6 @@
  * 【テストシーケンス】
  *
  *	== TASK1（優先度：中）==
- *		call(set_bit_service(get_bit_kernel()))
  *	1:	act_tsk(TASK2)					... (A-1)
  *	== TASK2（優先度：高）==
  *	2:	slp_tsk()						... (H-2)
@@ -153,8 +152,6 @@
 #include "kernel_cfg.h"
 #include "test_task1.h"
 
-extern ER	bit_kernel(void);
-
 /* DO NOT DELETE THIS LINE -- gentest depends on it. */
 
 void
@@ -185,8 +182,6 @@ task1(intptr_t exinf)
 	ER_UINT	ercd;
 
 	test_start(__FILE__);
-
-	set_bit_service(get_bit_kernel());
 
 	check_point(1);
 	ercd = act_tsk(TASK2);

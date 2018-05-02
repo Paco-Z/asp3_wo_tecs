@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: histogram.c 506 2016-01-12 01:46:49Z ertl-hiro $
+ *  $Id: histogram.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -43,19 +43,20 @@
 
 #include <kernel.h>
 #include <t_syslog.h>
+#include "target_syssvc.h"
 #include "histogram.h"
-#include "target_test.h"
 
 /*
- *  実行時間分布計測の数
- */
-#ifndef TNUM_HIST
-#define TNUM_HIST		10
-#endif /* TNUM_HIST */
+ *  実行時間分布集計サービス関連の定数等のデフォルト値の定義
+ */ 
+#ifndef TNUM_HISTID
+#define TNUM_HISTID			10		/* 計測する実行時間分布の数 */
+#endif /* TNUM_HISTID */
 
-/*
- *  ターゲット依存部で設定変更するためのマクロ
- */
+#ifndef HIST_MAX_TIME
+#define HIST_MAX_TIME		1000	/* 計測する最大時間 */
+#endif /* HIST_MAX_TIME */
+
 #ifndef HISTTIM						/* 実行時間計測用の時刻のデータ型 */
 #define HISTTIM					HRTCNT
 
@@ -90,104 +91,148 @@ typedef struct histogram_control_block {
 /*
  *  実行時間分布計測管理ブロックのエリア
  */
-static HISTCB	histcb_table[TNUM_HIST];
+static HISTCB	histcb_table[TNUM_HISTID];
+
+/*
+ *  実行時間分布を記録するメモリ領域
+ */
+static uint_t	histarea[TNUM_HISTID][HIST_MAX_TIME + 1];
 
 /*
  *  実行時間分布計測IDの最小値と最大値
  */
 #define TMIN_HISTID		1
-#define TMAX_HISTID		(TMIN_HISTID + TNUM_HIST - 1)
+#define TMAX_HISTID		(TMIN_HISTID + TNUM_HISTID - 1)
+
+/*
+ *  実行時間分布計測IDの範囲の判定
+ */
+#define VALID_HISTID(histid) \
+				(TMIN_HISTID <= (histid) && (histid) <= TMAX_HISTID)
+
+/*
+ *  実行時間分布計測IDから実行時間分布計測管理ブロックを取り出すためのマクロ
+ */
+#define INDEX_HIST(histid)	((uint_t)((histid) - TMIN_HISTID))
+#define get_histcb(histid)	(&(histcb_table[INDEX_HIST(histid)]))
 
 /*
  *  実行時間分布計測の初期化
  */
-void
-init_hist(ID histid, uint_t maxval, uint_t histarea[])
+ER
+init_hist(ID histid)
 {
 	HISTCB	*p_histcb;
 	uint_t	i;
+	ER		ercd;
 
-	assert(TMIN_HISTID <= histid && histid <= TMAX_HISTID);
-	p_histcb = &(histcb_table[histid - TMIN_HISTID]);
-
-	for (i = 0; i <= maxval; i++) {
-		histarea[i] = 0U;
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
 	}
-	p_histcb->maxval = maxval;
-	p_histcb->histarea = histarea;
-	p_histcb->over = 0U;
-	p_histcb->under = 0U;
+	else {
+		p_histcb = get_histcb(histid);
+		for (i = 0; i <= HIST_MAX_TIME; i++) {
+			histarea[INDEX_HIST(histid)][i] = 0U;
+		}
+
+		p_histcb->maxval = HIST_MAX_TIME;
+		p_histcb->histarea = histarea[INDEX_HIST(histid)];
+		p_histcb->over = 0U;
+		p_histcb->under = 0U;
+		ercd = E_OK;
+	}
+	return(ercd);
 }
 
 /*
  *  実行時間計測の開始
  */
-void
+ER
 begin_measure(ID histid)
 {
 	HISTCB	*p_histcb;
+	ER		ercd;
 
-	assert(TMIN_HISTID <= histid && histid <= TMAX_HISTID);
-	p_histcb = &(histcb_table[histid - TMIN_HISTID]);
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
+	}
+	else {
+		p_histcb = get_histcb(histid);
 
-	HIST_BM_HOOK();
-	HIST_GET_TIM(&(p_histcb->begin_time));
+		HIST_BM_HOOK();
+		HIST_GET_TIM(&(p_histcb->begin_time));
+		ercd = E_OK;
+	}
+	return(ercd);
 }
 
 /*
  *  実行時間計測の終了
  */
-void
+ER
 end_measure(ID histid)
 {
 	HISTCB	*p_histcb;
 	HISTTIM	end_time, timediff;
 	uint_t	val;
+	ER		ercd;
 
-	HIST_GET_TIM(&end_time);
-
-	assert(TMIN_HISTID <= histid && histid <= TMAX_HISTID);
-	p_histcb = &(histcb_table[histid - TMIN_HISTID]);
-
-	timediff = end_time - p_histcb->begin_time;
-#ifdef HISTTIM_CYCLE
-	if (end_time < p_histcb->begin_time) {
-		timediff += HISTTIM_CYCLE;
-	}
-#endif /* HISTTIM_CYCLE */
-	val = HIST_CONV_TIM(timediff);
-	if (val <= p_histcb->maxval) {
-		p_histcb->histarea[val]++;
-	}
-	else if (val <= ((uint_t) INT_MAX)) {
-		p_histcb->over++;
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
 	}
 	else {
-		p_histcb->under++;
+		HIST_GET_TIM(&end_time);
+		p_histcb = get_histcb(histid);
+
+		timediff = end_time - p_histcb->begin_time;
+#ifdef HISTTIM_CYCLE
+		if (end_time < p_histcb->begin_time) {
+			timediff += HISTTIM_CYCLE;
+		}
+#endif /* HISTTIM_CYCLE */
+		val = HIST_CONV_TIM(timediff);
+		if (val <= p_histcb->maxval) {
+			p_histcb->histarea[val]++;
+		}
+		else if (val <= ((uint_t) INT_MAX)) {
+			p_histcb->over++;
+		}
+		else {
+			p_histcb->under++;
+		}
+		ercd = E_OK;
 	}
+	return(ercd);
 }
 
 /*
  *  実行時間分布計測の表示
  */
-void
+ER
 print_hist(ID histid)
 {
 	HISTCB	*p_histcb;
 	uint_t	i;
+	ER		ercd;
 
-	assert(TMIN_HISTID <= histid && histid <= TMAX_HISTID);
-	p_histcb = &(histcb_table[histid - TMIN_HISTID]);
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
+	}
+	else {
+		p_histcb = get_histcb(histid);
 
-	for (i = 0; i <= p_histcb->maxval; i++) {
-		if (p_histcb->histarea[i] > 0) {
-			syslog_2(LOG_NOTICE, "%d : %d", i, p_histcb->histarea[i]);
+		for (i = 0; i <= p_histcb->maxval; i++) {
+			if (p_histcb->histarea[i] > 0) {
+				syslog_2(LOG_NOTICE, "%d : %d", i, p_histcb->histarea[i]);
+			}
 		}
+		if (p_histcb->over > 0) {
+			syslog_2(LOG_NOTICE, "> %d : %d", p_histcb->maxval, p_histcb->over);
+		}
+		if (p_histcb->under > 0) {
+			syslog_1(LOG_NOTICE, "> INT_MAX : %d", p_histcb->under);
+		}
+		ercd = E_OK;
 	}
-	if (p_histcb->over > 0) {
-		syslog_2(LOG_NOTICE, "> %d : %d", p_histcb->maxval, p_histcb->over);
-	}
-	if (p_histcb->under > 0) {
-		syslog_1(LOG_NOTICE, "> INT_MAX : %d", p_histcb->under);
-	}
+	return(ercd);
 }

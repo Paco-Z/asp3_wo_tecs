@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf4.h 286 2014-11-29 07:51:11Z ertl-hiro $
+ *  $Id: perf4.h 964 2018-05-02 07:53:57Z ertl-hiro $
  */
 
 /*
@@ -65,7 +65,7 @@
 #endif /* STACK_SIZE */
 
 #ifndef CYC1_CYCLE
-#define CYC1_CYCLE		100U		/* 周期ハンドラの周期（μ秒）*/
+#define CYC1_CYCLE		1000U		/* 周期ハンドラの周期（μ秒）*/
 #endif /* CYC1_CYCLE */
 
 /*

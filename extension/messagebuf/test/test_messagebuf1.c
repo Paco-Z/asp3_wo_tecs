@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: test_messagebuf1.c 756 2016-10-03 10:47:38Z ertl-hiro $
+ *  $Id: test_messagebuf1.c 949 2018-04-19 13:29:51Z ertl-hiro $
  */
 
 /* 
@@ -86,7 +86,6 @@
  * 【テストシーケンス】
  *
  *	== TASK1（優先度：高）==
- *		call(set_bit_service(get_bit_kernel()))
  *	1:	act_tsk(TASK2)
  *		act_tsk(TASK3)
  *		ref_mbf(MBF1, &rmbf)
@@ -192,8 +191,6 @@ task1(intptr_t exinf)
 	T_RMBF	rmbf;
 
 	test_start(__FILE__);
-
-	set_bit_service(get_bit_kernel());
 
 	check_point(1);
 	ercd = act_tsk(TASK2);

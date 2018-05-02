@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: Makefile 492 2016-01-10 03:58:54Z ertl-hiro $
+#  $Id: Makefile 935 2018-04-07 09:23:40Z ertl-hiro $
 # 
 
 #
@@ -49,6 +49,11 @@ all:
 #  ターゲット略称の定義
 #
 TARGET = zynq7000_gcc
+
+#
+#  ボードの選択
+#
+BOARD = ARDUZYNQ
 
 #
 #  プログラミング言語の定義
@@ -66,7 +71,7 @@ endif
 #
 #  ソースファイルのディレクトリの定義
 #
-SRCDIR = ../../../../
+SRCDIR = ../../../..
 
 #
 #  オブジェクトファイル名の拡張子の設定
@@ -85,6 +90,16 @@ KERNEL_LIB =
 KERNEL_FUNCOBJS = 
 
 #
+#  TECSを外すかどうかの定義
+#
+OMIT_TECS = true
+
+#
+#  TECS関係ファイルのディレクトリの定義
+#
+TECSDIR = $(SRCDIR)/tecsgen
+
+#
 #  トレースログを取得するかどうかの定義
 #
 ENABLE_TRACE = 
@@ -97,7 +112,8 @@ DEVTOOLDIR =
 #
 #  ユーティリティプログラムの名称
 #
-CFG = ruby -Eutf-8 $(SRCDIR)/cfg/cfg.rb
+CFG = ruby $(SRCDIR)/cfg/cfg.rb
+TECSGEN = ruby $(TECSDIR)/tecsgen.rb
 
 #
 #  オブジェクトファイル名の定義
@@ -127,6 +143,23 @@ TARGETDIR = $(SRCDIR)/target/$(TARGET)
 include $(TARGETDIR)/Makefile.target
 
 #
+#  TECS生成ファイルのディレクトリの定義
+#
+TECSGENDIR = ./gen
+ifndef OMIT_TECS
+	TECSGEN_TIMESTAMP = $(TECSGENDIR)/tecsgen.timestamp
+	INIT_TECS_COBJ = init_tecs.o
+endif
+
+#
+#  TECSが生成する定義のインクルード
+#
+ifndef OMIT_TECS
+	GEN_DIR = $(TECSGENDIR)
+	-include $(TECSGENDIR)/Makefile.tecsgen
+endif
+
+#
 #  共通コンパイルオプションの定義
 #
 COPTS := -g  $(COPTS)
@@ -135,6 +168,9 @@ ifndef OMIT_WARNING_ALL
 endif
 ifndef OMIT_OPTIMIZATION
 	COPTS := -O2 $(COPTS)
+endif
+ifdef OMIT_TECS
+	CDEFS := -DTOPPERS_OMIT_TECS $(CDEFS)
 endif
 CDEFS := $(CDEFS) 
 INCLUDES := -I. -I$(SRCDIR)/include $(INCLUDES) -I$(SRCDIR)
@@ -148,6 +184,7 @@ CFLAGS = $(COPTS) $(CDEFS) $(INCLUDES)
 APPLNAME = sample1
 APPLDIRS = $(SRCDIR)/sample
 APPL_CFG = sample1.cfg
+APPL_CDL = sample1.cdl
 
 APPL_DIRS := $(APPLDIRS) $(SRCDIR)/library
 APPL_ASMOBJS :=
@@ -166,25 +203,35 @@ endif
 #
 #  システムサービスに関する定義
 #
-SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/syssvc
+SYSSVC_DIRS := $(TECSGENDIR) $(SRCDIR)/tecs_kernel \
+				$(SYSSVC_DIRS) $(SRCDIR)/syssvc
 SYSSVC_ASMOBJS := $(SYSSVC_ASMOBJS)
-SYSSVC_COBJS := $(SYSSVC_COBJS) banner.o syslog.o serial.o logtask.o \
-				 $(CXXRTS)
+SYSSVC_COBJS := $(SYSSVC_COBJS) syslog.o banner.o serial.o target_serial.o logtask.o $(TECS_COBJS) \
+				$(INIT_TECS_COBJ) $(CXXRTS)
 SYSSVC_CFLAGS := $(SYSSVC_CFLAGS)
+INCLUDES := $(INCLUDES) -I$(TECSGENDIR) -I$(SRCDIR)/tecs_kernel
 
 #
-#  ターゲットファイル（複数を同時に選択してはならない）
+#  ターゲットファイル
 #
 .PHONY: all
+ifndef OMIT_TECS
+all: tecs
+	@$(MAKE) check
+#	@$(MAKE) check $(OBJNAME).bin
+#	@$(MAKE) check $(OBJNAME).srec
+else
 all: check
 #all: check $(OBJNAME).bin
 #all: check $(OBJNAME).srec
+endif
 
 ##### 以下は編集しないこと #####
 
 #
 #  コンフィギュレータに関する定義
 #
+CFG_KERNEL := --kernel asp
 CFG_TABS := --api-table $(SRCDIR)/kernel/kernel_api.def \
 			--symval-table $(SRCDIR)/kernel/kernel_sym.def $(CFG_TABS)
 CFG_ASMOBJS := $(CFG_ASMOBJS)
@@ -222,13 +269,8 @@ else
 	KERNEL_COBJS := $(KERNEL_COBJS) \
 					$(foreach file,$(KERNEL_FCSRCS),$(file:.c=.o))
 endif
-ifdef OMIT_OFFSET_H
-	OFFSET_H =
-else
+ifdef TARGET_OFFSET_TRB
 	OFFSET_H = offset.h
-endif
-ifndef TARGET_OFFSET_TRB
-	TARGET_OFFSET_TRB := $(TARGETDIR)/target_offset.trb
 endif
 ifndef TARGET_KERNEL_TRB
 	TARGET_KERNEL_TRB := $(TARGETDIR)/target_kernel.trb
@@ -246,6 +288,7 @@ endif
 vpath %.c $(KERNEL_DIRS) $(SYSSVC_DIRS) $(APPL_DIRS)
 vpath %.S $(KERNEL_DIRS) $(SYSSVC_DIRS) $(APPL_DIRS)
 vpath %.cfg $(APPL_DIRS)
+vpath %.cdl $(APPL_DIRS)
 
 #
 #  コンパイルのための変数の定義
@@ -272,20 +315,33 @@ ifdef DATA_START_ADDRESS
 	LDFLAGS := $(LDFLAGS) -Wl,-Tdata,$(DATA_START_ADDRESS)
 endif
 ifdef LDSCRIPT
-	LDFLAGS := $(LDFLAGS) -T $(LDSCRIPT)
+	LDFLAGS := $(LDFLAGS) -Wl,-T,$(LDSCRIPT)
 endif
+
+#
+#  tecsgenからCプリプロセッサを呼び出す際のオプションの定義
+#
+TECS_CPP = $(CC) $(CDEFS) $(INCLUDES) $(SYSSVC_CFLAGS) -D TECSGEN -E
+
+#
+#  tecsgenの呼出し
+#
+.PHONY: tecs
+tecs $(TECSGEN_SRCS) $(TECS_HEADERS): $(TECSGEN_TIMESTAMP) ;
+$(TECSGEN_TIMESTAMP): $(APPL_CDL) $(TECS_IMPORTS)
+	$(TECSGEN) $< -R $(INCLUDES) --cpp "$(TECS_CPP)" -g $(TECSGENDIR)
 
 #
 #  カーネルのコンフィギュレーションファイルの生成
 #
 cfg1_out.c cfg1_out.db: cfg1_out.timestamp ;
 cfg1_out.timestamp: $(APPL_CFG) $(TECSGEN_TIMESTAMP)
-	$(CFG) --pass 1 --kernel asp $(INCLUDES) $(CFG_TABS) \
+	$(CFG) --pass 1 $(CFG_KERNEL) $(INCLUDES) $(CFG_TABS) \
 						-M $(DEPDIR)/cfg1_out_c.d $(TARGET_KERNEL_CFG) $<
 
 $(CFG1_OUT): $(START_OBJS) cfg1_out.o $(END_OBJS) $(HIDDEN_OBJS)
 	$(LINK) $(CFLAGS) $(LDFLAGS) $(CFG1_OUT_LDFLAGS) -o $(CFG1_OUT) \
-						$(START_OBJS) cfg1_out.o $(END_OBJS)
+						$(START_OBJS) cfg1_out.o $(LIBS) $(END_OBJS)
 
 cfg1_out.syms: $(CFG1_OUT)
 	$(NM) -n $(CFG1_OUT) > cfg1_out.syms
@@ -295,14 +351,14 @@ cfg1_out.srec: $(CFG1_OUT)
 
 $(CFG2_OUT_SRCS) cfg2_out.db: kernel_cfg.timestamp ;
 kernel_cfg.timestamp: cfg1_out.db cfg1_out.syms cfg1_out.srec
-	$(CFG) --pass 2 --kernel asp $(INCLUDES) -T $(TARGET_KERNEL_TRB)
+	$(CFG) --pass 2 $(CFG_KERNEL) $(INCLUDES) -T $(TARGET_KERNEL_TRB)
 
 #
 #  オフセットファイル（offset.h）の生成規則
 #
 $(OFFSET_H): offset.timestamp ;
 offset.timestamp: cfg1_out.db cfg1_out.syms cfg1_out.srec
-	$(CFG) --pass 2 -O --kernel asp $(INCLUDES) -T $(TARGET_OFFSET_TRB) \
+	$(CFG) --pass 2 -O $(CFG_KERNEL) $(INCLUDES) -T $(TARGET_OFFSET_TRB) \
 				--rom-symbol cfg1_out.syms --rom-image cfg1_out.srec
 
 #
@@ -316,7 +372,7 @@ libkernel.a: $(OFFSET_H) $(KERNEL_LIB_OBJS)
 #
 #  特別な依存関係の定義
 #
-banner.o: $(filter-out banner.o,$(ALL_OBJS)) $(LIBS_DEP)
+tBannerMain.o: $(filter-out tBannerMain.o,$(ALL_OBJS)) $(LIBS_DEP)
 
 #
 #  全体のリンク
@@ -350,7 +406,7 @@ $(OBJNAME).srec: $(OBJFILE)
 .PHONY: check
 check: check.timestamp ;
 check.timestamp: cfg2_out.db $(OBJNAME).syms $(OBJNAME).srec
-	$(CFG) --pass 3 --kernel asp -O $(INCLUDES) -T $(TARGET_CHECK_TRB) \
+	$(CFG) --pass 3 $(CFG_KERNEL) -O $(INCLUDES) -T $(TARGET_CHECK_TRB) \
 				--rom-symbol $(OBJNAME).syms --rom-image $(OBJNAME).srec
 	@echo "configuration check passed"
 
@@ -365,6 +421,7 @@ clean:
 	rm -f offset.timestamp $(OFFSET_H)
 	rm -f cfg1_out.syms cfg1_out.srec $(CFG1_OUT)
 	rm -f cfg1_out.timestamp cfg1_out.c cfg1_out.db
+	rm -rf $(TECSGENDIR)
 ifndef KERNEL_LIB
 	rm -f libkernel.a
 endif

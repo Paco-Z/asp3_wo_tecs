@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: messagebuf.c 471 2015-12-30 10:03:16Z ertl-hiro $
+ *  $Id: messagebuf.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -351,9 +351,9 @@ messagebuf_dequeue_wobj(TCB *p_tcb)
 ER
 snd_mbf(ID mbfid, const void *msg, uint_t msgsz)
 {
-	MBFCB	*p_mbfcb;
-	WINFO_SMBF winfo_smbf;
-	ER		ercd;
+	MBFCB		*p_mbfcb;
+	WINFO_SMBF	winfo_smbf;
+	ER			ercd;
 
 	LOG_SND_MBF_ENTER(mbfid, msg, msgsz);
 	CHECK_DISPATCH();
@@ -432,10 +432,10 @@ psnd_mbf(ID mbfid, const void *msg, uint_t msgsz)
 ER
 tsnd_mbf(ID mbfid, const void *msg, uint_t msgsz, TMO tmout)
 {
-	MBFCB	*p_mbfcb;
-	WINFO_SMBF winfo_smbf;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	MBFCB		*p_mbfcb;
+	WINFO_SMBF	winfo_smbf;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TSND_MBF_ENTER(mbfid, msg, msgsz, tmout);
 	CHECK_DISPATCH();
@@ -483,10 +483,10 @@ tsnd_mbf(ID mbfid, const void *msg, uint_t msgsz, TMO tmout)
 ER_UINT
 rcv_mbf(ID mbfid, void *msg)
 {
-	MBFCB	*p_mbfcb;
-	WINFO_RMBF winfo_rmbf;
-	uint_t	msgsz;
-	ER_UINT	ercd;
+	MBFCB		*p_mbfcb;
+	WINFO_RMBF	winfo_rmbf;
+	uint_t		msgsz;
+	ER_UINT		ercd;
 
 	LOG_RCV_MBF_ENTER(mbfid, msg);
 	CHECK_DISPATCH();
@@ -566,11 +566,11 @@ prcv_mbf(ID mbfid, void *msg)
 ER
 trcv_mbf(ID mbfid, void *msg, TMO tmout)
 {
-	MBFCB	*p_mbfcb;
-	WINFO_RMBF winfo_rmbf;
-	TMEVTB	tmevtb;
-	uint_t	msgsz;
-	ER_UINT	ercd;
+	MBFCB		*p_mbfcb;
+	WINFO_RMBF	winfo_rmbf;
+	TMEVTB		tmevtb;
+	uint_t		msgsz;
+	ER_UINT		ercd;
 
 	LOG_TRCV_MBF_ENTER(mbfid, msg, tmout);
 	CHECK_DISPATCH();

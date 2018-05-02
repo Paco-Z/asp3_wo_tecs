@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sample1.c 725 2016-04-02 21:50:49Z ertl-hiro $
+ *  $Id: sample1.c 946 2018-04-18 02:43:19Z ertl-hiro $
  */
 
 /* 
@@ -213,7 +213,7 @@ void task(intptr_t exinf)
 }
 
 /*
- *  割込みハンドラ
+ *  割込みサービスルーチン
  */
 #ifdef INTNO1
 
@@ -316,6 +316,22 @@ overrun_handler(ID tskid, intptr_t exinf)
 }
 
 #endif /* TOPPERS_SUPPORT_OVRHDR */
+
+/*
+ *  プロセッサ時間の消費
+ */
+#define NO_LOOP_CONSUME_TIME	256
+
+static volatile int_t	array[NO_LOOP_CONSUME_TIME];
+
+static void consume_time(void)
+{
+	int_t	i;
+
+	for (i = 0; i < NO_LOOP_CONSUME_TIME; i++) {
+		array[i] = i;
+	}
+}
 
 /*
  *  メインタスク
@@ -500,24 +516,25 @@ void main_task(intptr_t exinf)
 			SVC_PERROR(rot_rdq(LOW_PRIORITY));
 			break;
 		case 'c':
-			syslog(LOG_INFO, "#sta_cyc(1)");
+			syslog(LOG_INFO, "#sta_cyc(CYCHDR1)");
 			SVC_PERROR(sta_cyc(CYCHDR1));
 			break;
 		case 'C':
-			syslog(LOG_INFO, "#stp_cyc(1)");
+			syslog(LOG_INFO, "#stp_cyc(CYCHDR1)");
 			SVC_PERROR(stp_cyc(CYCHDR1));
 			break;
 		case 'b':
-			syslog(LOG_INFO, "#sta_alm(1, 5000000)");
+			syslog(LOG_INFO, "#sta_alm(ALMHDR1, 5000000)");
 			SVC_PERROR(sta_alm(ALMHDR1, 5000000));
 			break;
 		case 'B':
-			syslog(LOG_INFO, "#stp_alm(1)");
+			syslog(LOG_INFO, "#stp_alm(ALMHDR1)");
 			SVC_PERROR(stp_alm(ALMHDR1));
 			break;
 
 		case 'V':
 			hrtcnt1 = fch_hrt();
+			consume_time();
 			hrtcnt2 = fch_hrt();
 			syslog(LOG_NOTICE, "hrtcnt1 = %tu, hrtcnt2 = %tu",
 										hrtcnt1, hrtcnt2);
@@ -548,21 +565,6 @@ void main_task(intptr_t exinf)
 			SVC_PERROR(syslog_msk_log(LOG_UPTO(LOG_NOTICE),
 										LOG_UPTO(LOG_EMERG)));
 			break;
-
-#ifdef BIT_KERNEL
-		case ' ':
-			SVC_PERROR(loc_cpu());
-			{
-				extern ER	bit_kernel(void);
-
-				SVC_PERROR(ercd = bit_kernel());
-				if (ercd >= 0) {
-					syslog(LOG_NOTICE, "bit_kernel passed.");
-				}
-			}
-			SVC_PERROR(unl_cpu());
-			break;
-#endif /* BIT_KERNEL */
 
 		default:
 			break;

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: cyclic.c 717 2016-03-31 07:03:53Z ertl-hiro $
+ *  $Id: cyclic.c 908 2018-03-05 00:35:54Z ertl-hiro $
  */
 
 /*
@@ -174,23 +174,20 @@ acre_cyc(const T_CCYC *pk_ccyc)
 	CYCCB		*p_cyccb;
 	CYCINIB		*p_cycinib;
 	ATR			cycatr;
-	T_NFYINFO	nfyinfo, *p_nfyinfo;
-	RELTIM		cyctim;
-	RELTIM		cycphs;
-	ER			ercd, rercd;
+	RELTIM		cyctim, cycphs;
+	T_NFYINFO	*p_nfyinfo;
+	ER			ercd;
 
 	LOG_ACRE_CYC_ENTER(pk_ccyc);
 	CHECK_TSKCTX_UNL();
 
 	cycatr = pk_ccyc->cycatr;
-	nfyinfo = pk_ccyc->nfyinfo;
 	cyctim = pk_ccyc->cyctim;
 	cycphs = pk_ccyc->cycphs;
 
-	CHECK_RSATR(cycatr, TA_STA);
-	rercd = check_nfyinfo(&nfyinfo);
-	if (rercd != E_OK) {
-		ercd = rercd;
+	CHECK_VALIDATR(cycatr, TA_STA);
+	ercd = check_nfyinfo(&(pk_ccyc->nfyinfo));
+	if (ercd != E_OK) {
 		goto error_exit;
 	}
 	CHECK_PAR(0 < cyctim && cyctim <= TMAX_RELTIM);
@@ -205,13 +202,13 @@ acre_cyc(const T_CCYC *pk_ccyc)
 												- offsetof(CYCCB, tmevtb)));
 		p_cycinib = (CYCINIB *)(p_cyccb->p_cycinib);
 		p_cycinib->cycatr = cycatr;
-		if (nfyinfo.nfymode == TNFY_HANDLER) {
-			p_cycinib->exinf = nfyinfo.nfy.handler.exinf;
-			p_cycinib->nfyhdr = (NFYHDR)(nfyinfo.nfy.handler.tmehdr);
+		if (pk_ccyc->nfyinfo.nfymode == TNFY_HANDLER) {
+			p_cycinib->exinf = pk_ccyc->nfyinfo.nfy.handler.exinf;
+			p_cycinib->nfyhdr = (NFYHDR)(pk_ccyc->nfyinfo.nfy.handler.tmehdr);
 		}
 		else {
 			p_nfyinfo = &acyc_nfyinfo_table[p_cycinib - acycinib_table];
-			*p_nfyinfo = nfyinfo;
+			*p_nfyinfo = pk_ccyc->nfyinfo;
 			p_cycinib->exinf = (intptr_t) p_nfyinfo;
 			p_cycinib->nfyhdr = notify_handler;
 		}

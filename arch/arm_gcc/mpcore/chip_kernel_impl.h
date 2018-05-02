@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: chip_kernel_impl.h 388 2015-07-31 22:42:21Z ertl-hiro $
+ *  $Id: chip_kernel_impl.h 872 2018-01-15 18:51:05Z ertl-hiro $
  */
 
 /*
@@ -51,6 +51,9 @@
 #ifndef TOPPERS_CHIP_KERNEL_IMPL_H
 #define TOPPERS_CHIP_KERNEL_IMPL_H
 
+/*
+ *  MPCoreのハードウェア資源の定義
+ */
 #include "mpcore.h"
 
 /*

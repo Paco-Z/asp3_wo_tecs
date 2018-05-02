@@ -2,8 +2,8 @@
 		TOPPERS/ASP3カーネル
 		コンフィギュレータ仕様
 
-		対応バージョン: Release 3.2.0
-		最終更新: 2016年2月5日
+		対応バージョン: Release 3.3.0
+		最終更新: 2018年2月22日
 
 このドキュメントは，TOPPERS/ASP3カーネルのコンフィギュレータが標準的に
 生成すべきファイルの内容について解説したものである．ターゲット依存に生
@@ -14,7 +14,7 @@
      Toyohashi Open Platform for Embedded Real-Time Systems/
      Advanced Standard Profile Kernel
 
- Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
              Graduate School of Information Science, Nagoya Univ., JAPAN
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -46,7 +46,7 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
- $Id: configurator.txt 800 2017-07-19 23:34:23Z ertl-hiro $
+ $Id: configurator.txt 890 2018-02-23 05:36:37Z ertl-hiro $
 ----------------------------------------------------------------------
 
 ○目次
@@ -115,7 +115,7 @@ ASP3カーネルのコンフィギュレータが処理する静的APIは次の�
 
 (1) タスク管理機能
 	CRE_TSK(ID tskid, { ATR tskatr, intptr_t exinf, TASK task,
-								PRI itskpri, SIZE stksz, STK_T *stk })
+								PRI itskpri, size_t stksz, STK_T *stk })
 
 (2) 同期・通信機能
 	CRE_SEM(ID semid, { ATR sematr, uint_t isemcnt, uint_t maxsem })
@@ -147,7 +147,7 @@ ASP3カーネルのコンフィギュレータが処理する静的APIは次の�
 	DEF_EXC(EXCNO excno, { ATR excatr, EXCHDR exchdr })
 
 (7) システム構成管理機能
-	DEF_ICS({ SIZE istksz, STK_T *istk })
+	DEF_ICS({ size_t istksz, STK_T *istk })
 	ATT_INI({ ATR iniatr, intptr_t exinf, INIRTN inirtn })
 	ATT_TER({ ATR teratr, intptr_t exinf, TERRTN terrtn })
 
@@ -1400,7 +1400,7 @@ istkがNULLでない場合には，非タスクコンテキスト用のスタッ
 
 DEF_ICSの有無によらず，次の定義を生成する．
 
-const SIZE		_kernel_istksz = TOPPERS_ISTKSZ;
+const size_t	_kernel_istksz = TOPPERS_ISTKSZ;
 STK_T *const	_kernel_istk = TOPPERS_ISTK;
 
 #ifdef TOPPERS_ISTKPT

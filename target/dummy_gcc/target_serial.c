@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2013-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,17 +35,17 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_serial.c 374 2015-07-30 22:01:54Z ertl-hiro $
+ *  $Id: target_serial.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
- *		シリアルI/Oデバイス（SIO）ドライバ（ダミーターゲット用）
+ *		シリアルインタフェースドライバのターゲット依存部（ダミーターゲット用）
  */
 
 #include "target_serial.h"
 
 /*
- *  シリアルI/Oポート初期化ブロックの定義
+ *  SIOポート初期化ブロックの定義
  */
 typedef struct sio_port_initialization_block {
 	int_t		dummy;			/* ダミーフィールド */
@@ -53,10 +53,10 @@ typedef struct sio_port_initialization_block {
 } SIOPINIB;
 
 /*
- *  シリアルI/Oポート管理ブロックの定義
+ *  SIOポート管理ブロックの定義
  */
 struct sio_port_control_block {
-	const SIOPINIB *p_siopinib;	/* シリアルI/Oポート初期化ブロック */
+	const SIOPINIB *p_siopinib;	/* SIOポート初期化ブロック */
 	intptr_t	exinf;			/* 拡張情報 */
 	bool_t		openflag;		/* オープン済みフラグ */
 	int_t		dummy;			/* ダミーフィールド */
@@ -64,19 +64,19 @@ struct sio_port_control_block {
 };
 
 /*
- *  シリアルI/Oポート初期化ブロック
+ *  SIOポート初期化ブロック
  */
 const SIOPINIB siopinib_table[TNUM_SIOP] = {
 	{ 0 }
 };
 
 /*
- *  シリアルI/Oポート管理ブロックのエリア
+ *  SIOポート管理ブロックのエリア
  */
 SIOPCB	siopcb_table[TNUM_SIOP];
 
 /*
- *  シリアルI/OポートIDから管理ブロックを取り出すためのマクロ
+ *  SIOポートIDから管理ブロックを取り出すためのマクロ
  */
 #define INDEX_SIOP(siopid)	((uint_t)((siopid) - 1))
 #define get_siopcb(siopid)	(&(siopcb_table[INDEX_SIOP(siopid)]))
@@ -91,7 +91,7 @@ sio_initialize(intptr_t exinf)
 	uint_t	i;
 
 	/*
-	 *  シリアルI/Oポート管理ブロックの初期化
+	 *  SIOポート管理ブロックの初期化
 	 */
 	for (i = 0; i < TNUM_SIOP; i++) {
 		p_siopcb = &(siopcb_table[i]);
@@ -111,7 +111,7 @@ sio_terminate(intptr_t exinf)
 	uint_t	i;
 
 	/*
-	 *  オープンされているシリアルI/Oポートのクローズ
+	 *  オープンされているSIOポートのクローズ
 	 */
 	for (i = 0; i < TNUM_SIOP; i++) {
 		p_siopcb = &(siopcb_table[i]);
@@ -122,7 +122,7 @@ sio_terminate(intptr_t exinf)
 }
 
 /*
- *  シリアルI/Oポートのオープン
+ *  SIOポートのオープン
  */
 SIOPCB *
 sio_opn_por(ID siopid, intptr_t exinf)
@@ -142,7 +142,7 @@ sio_opn_por(ID siopid, intptr_t exinf)
 }
 
 /*
- *  シリアルI/Oポートのクローズ
+ *  SIOポートのクローズ
  */
 void
 sio_cls_por(SIOPCB *p_siopcb)
@@ -169,7 +169,7 @@ sio_isr(intptr_t exinf)
 }
 
 /*
- *  シリアルI/Oポートへの文字送信
+ *  SIOポートへの文字送信
  */
 bool_t
 sio_snd_chr(SIOPCB *p_siopcb, char c)
@@ -184,7 +184,7 @@ sio_snd_chr(SIOPCB *p_siopcb, char c)
 }
 
 /*
- *  シリアルI/Oポートからの文字受信
+ *  SIOポートからの文字受信
  */
 int_t
 sio_rcv_chr(SIOPCB *p_siopcb)
@@ -202,7 +202,7 @@ sio_rcv_chr(SIOPCB *p_siopcb)
 }
 
 /*
- *  シリアルI/Oポートからのコールバックの許可
+ *  SIOポートからのコールバックの許可
  */
 void
 sio_ena_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
@@ -218,7 +218,7 @@ sio_ena_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
 }
 
 /*
- *  シリアルI/Oポートからのコールバックの禁止
+ *  SIOポートからのコールバックの禁止
  */
 void
 sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
@@ -231,4 +231,17 @@ sio_dis_cbr(SIOPCB *p_siopcb, uint_t cbrtn)
 		/* 受信完了割込みを禁止 */
 		break;
 	}
+}
+
+/*
+ *		システムログの低レベル出力（本来は別のファイルにすべき）
+ */
+
+/*
+ *  低レベル出力への文字出力
+ */
+void
+target_fput_log(char c)
+{
+	/* 文字cを表示/出力/保存する */
 }

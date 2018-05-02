@@ -2,8 +2,8 @@
 		TOPPERS/ASP3カーネル
 		Zynq7000依存部 ユーザーズマニュアル
 
-		対応バージョン: Release 3.2
-		最終更新: 2017年7月26日
+		対応バージョン: Release 3.3.1
+		最終更新: 2018年5月2日
 
 このドキュメントは，TOPPERS/ASP3カーネルのZynq-7000ターゲット依存部を
 使用するために必要な事項を説明するものである．
@@ -13,7 +13,7 @@
      Toyohashi Open Platform for Embedded Real-Time Systems/
      Advanced Standard Profile Kernel
 
- Copyright (C) 2008-2016 by Embedded and Real-Time Systems Laboratory
+ Copyright (C) 2008-2018 by Embedded and Real-Time Systems Laboratory
              Graduate School of Information Science, Nagoya Univ., JAPAN
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -45,7 +45,7 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
- $Id: target_user.txt 814 2017-07-25 05:19:11Z ertl-honda $
+ $Id: target_user.txt 969 2018-05-02 09:32:30Z ertl-honda $
 ----------------------------------------------------------------------
 
 ○目次
@@ -108,12 +108,12 @@ Zynq7000ターゲット依存部の使用するターゲット依存部（target
 
 1.3 依存している個別パッケージのバージョン番号
 
-Zynq-7000ターゲット依存部（バージョン 3.2.0）の個別パッケージが依存し
+Zynq-7000ターゲット依存部（バージョン 3.3.1）の個別パッケージが依存し
 ている個別パッケージと，動作確認を行ったバージョンは次の通り．
 
 	個別パッケージの名称	バージョン	個別パッケージファイル名
 	------------------------------------------------------------------
-	ターゲット非依存部		3.2.0		asp3-3.2.0.tar.gz
+	ターゲット非依存部		3.3.1		asp3-3.3.1.tar.gz
 
 1.4 開発環境と動作確認条件
 
@@ -123,8 +123,12 @@ Zynq-7000ターゲット依存部（バージョン 3.2.0）の個別パッケ�
 
 動作確認を行ったバージョンは次の通り．
 
-  - Xilinx SDK 2017.2
+  - Xilinx SDK 2017.4
 
+make によりビルドする場合は，以下のオプションでconfigureを実行すること． 
+
+ configure.rb -T zynq7000_gcc -S "syslog.o banner.o serial.o target_serial.o logtask.o"
+ 
 1.5 メモリマップ
 
 メモリマップはボード毎に異なる．メモリマップを変更する場合には，
@@ -209,9 +213,6 @@ Arduzynq : zybo_sdk
 		target_kernel_impl.h	カーネル実装のターゲット依存部に関する定義
 		target_rename.def		ターゲット依存部の内部識別名のリネーム定義
 		target_rename.h			ターゲット依存部の内部識別名のリネーム
-		target_serial.c			シリアルドライバ
-		target_serial.cfg		シリアルドライバのコンフィギュレーションファイル
-		target_serial.h			シリアルドライバを使用するための定義
 		target_sil.h			sil.hのターゲット依存部
 		target_stddef.h			t_stddef.hのターゲット依存部
 		target_syssvc.h			システムサービスのターゲット依存定義
@@ -221,6 +222,15 @@ Arduzynq : zybo_sdk
 		target_timer.h			タイマドライバを使用するための定義
 		target_unrename.h		ターゲット依存部の内部識別名のリネーム解除
 		target_user.txt			ターゲット依存部のユーザーズマニュアル
+		tPutLogZynq7000.c		システムログの低レベル出力
+		tPutLogZynq7000.cdl		システムログの低レベル出力のコンポーネント記述
+		tSIOPortZynq7000.cdl	シリアルインタフェースドライバのターゲット
+								依存部（Zynq7000用）のコンポーネント記述
+		tSIOPortZynq7000Main_inline.h		シリアルインタフェースドライバ
+								のターゲット依存部（Zynq7000用）
+		xUartPs.c				xuartps用のドライバ
+		xUartPs.cdl				xuartps用のコンポーネント記述
+		xuartps.h				XUART用のレジスタ定義
 		zynq7000.h				ターゲットのハードウェア資源の定義
 		zynq7000.ld				標準のリンカスクリプト
 		zybo_sdk				ZYBO用のXilinx SDKプロジェクト
@@ -228,7 +238,10 @@ Arduzynq : zybo_sdk
 
 5.2 バージョン履歴
 
+・2018/5/02
+  ・3.3.1対応
 ・2017/7/26
   ・最初のリリース
+  
  
 以上

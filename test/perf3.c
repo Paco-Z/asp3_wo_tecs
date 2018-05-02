@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf3.c 509 2016-01-12 06:06:14Z ertl-hiro $
+ *  $Id: perf3.c 964 2018-05-02 07:53:57Z ertl-hiro $
  */
 
 /*
@@ -73,8 +73,10 @@ static ID task_list[20] = {
 void task(intptr_t exinf)
 {
 	FLGPTN	flgptn;
+	ER		ercd;
 
-	wai_flg(FLG1, 0x01U, TWF_ORW, &flgptn);
+	ercd = wai_flg(FLG1, 0x01U, TWF_ORW, &flgptn);
+	check_ercd(ercd, E_OK);
 }
 
 /*
@@ -83,31 +85,46 @@ void task(intptr_t exinf)
 void
 perf_eval(uint_t n)
 {
-	uint_t		i, j;
+	uint_t	i, j;
+	ER		ercd;
 
-	init_hist(1);
+	ercd = init_hist(1);
+	check_ercd(ercd, E_OK);
 
 	for (i = 0; i < NO_MEASURE; i++) {
-		ini_flg(FLG1);
+		ercd = ini_flg(FLG1);
+		check_ercd(ercd, E_OK);
+
 		for (j = 0; j < n; j++) {
-			act_tsk(task_list[j]);
+			ercd = act_tsk(task_list[j]);
+			check_ercd(ercd, E_OK);
 		}
-		chg_pri(TSK_SELF, MAIN_PRIORITY_LOW);
+		ercd = chg_pri(TSK_SELF, MAIN_PRIORITY_LOW);
+		check_ercd(ercd, E_OK);
 		/* タスクが待ち状態に入るのを待つ */
-		chg_pri(TSK_SELF, TPRI_INI);
+		ercd = chg_pri(TSK_SELF, TPRI_INI);
+		check_ercd(ercd, E_OK);
 
-		begin_measure(1);
-		set_flg(FLG1, 0x01U);
-		end_measure(1);
+		ercd = begin_measure(1);
+		check_ercd(ercd, E_OK);
 
-		chg_pri(TSK_SELF, MAIN_PRIORITY_LOW);
+		ercd = set_flg(FLG1, 0x01U);
+		check_ercd(ercd, E_OK);
+
+		ercd = end_measure(1);
+		check_ercd(ercd, E_OK);
+
+		ercd = chg_pri(TSK_SELF, MAIN_PRIORITY_LOW);
+		check_ercd(ercd, E_OK);
 		/* タスクが終了するのを待つ */
-		chg_pri(TSK_SELF, TPRI_INI);
+		ercd = chg_pri(TSK_SELF, TPRI_INI);
+		check_ercd(ercd, E_OK);
 	}
 
 	syslog_1(LOG_NOTICE, "Execution times of set_flg"
 							" when %d tasks are released from waiting.", n);
-	print_hist(1);
+	ercd = print_hist(1);
+	check_ercd(ercd, E_OK);
 }
 
 /*

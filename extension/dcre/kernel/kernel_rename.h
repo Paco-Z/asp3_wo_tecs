@@ -7,10 +7,11 @@
  *  startup.c
  */
 #define kerflg						_kernel_kerflg
+#define mpk_valid					_kernel_mpk_valid
 #define exit_kernel					_kernel_exit_kernel
-#define initialize_kmm				_kernel_initialize_kmm
-#define kernel_malloc				_kernel_kernel_malloc
-#define kernel_free					_kernel_kernel_free
+#define initialize_mempool			_kernel_initialize_mempool
+#define malloc_mempool				_kernel_malloc_mempool
+#define free_mempool				_kernel_free_mempool
 
 /*
  *  task.c
@@ -231,8 +232,8 @@
 #define istksz						_kernel_istksz
 #define istk						_kernel_istk
 #define istkpt						_kernel_istkpt
-#define kmmsz						_kernel_kmmsz
-#define kmm							_kernel_kmm
+#define mpksz						_kernel_mpksz
+#define mpk							_kernel_mpk
 
 
 #include "target_rename.h"

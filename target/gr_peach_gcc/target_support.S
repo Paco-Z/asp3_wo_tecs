@@ -8,7 +8,7 @@
  *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
- *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
+ *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
  *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_support.S 720 2016-04-01 22:16:17Z ertl-hiro $
+ *  $Id: target_support.S 914 2018-03-07 10:16:16Z ertl-hiro $
  */
 
 /*
@@ -70,7 +70,7 @@ ALABEL(hardware_init_hook)
 	strb	r0, [r2]		/* 内蔵保持用RAMのページ0〜3への書込み許可 */
 	ldrb	r0, [r2]		/* ダミーリード */
 
-	/* 
+	/*
 	 *  クロック関係の初期化
 	 *
 	 *  以下の設定とする．
@@ -102,7 +102,7 @@ ALABEL(set_frqcr)
 	bne		set_frqcr
 
 #ifdef TOPPERS_RZA1H
-	/* 
+	/*
 	 *  画像処理クロックを「×2/3」に（266.67MHz）
 	 */
 ALABEL(set_frqcr2)
@@ -114,7 +114,7 @@ ALABEL(set_frqcr2)
 	bne		set_frqcr2
 #endif /* TOPPERS_RZA1H */
 
-	/* 
+	/*
 	 *  ソフトウェアスタンバイ復帰中でなくなるまで待つ
 	 */
 wait_isbusy:

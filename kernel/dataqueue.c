@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: dataqueue.c 471 2015-12-30 10:03:16Z ertl-hiro $
+ *  $Id: dataqueue.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -310,9 +310,9 @@ receive_data(DTQCB *p_dtqcb, intptr_t *p_data)
 ER
 snd_dtq(ID dtqid, intptr_t data)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_SDTQ winfo_sdtq;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_SDTQ	winfo_sdtq;
+	ER			ercd;
 
 	LOG_SND_DTQ_ENTER(dtqid, data);
 	CHECK_DISPATCH();
@@ -393,10 +393,10 @@ psnd_dtq(ID dtqid, intptr_t data)
 ER
 tsnd_dtq(ID dtqid, intptr_t data, TMO tmout)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_SDTQ winfo_sdtq;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_SDTQ	winfo_sdtq;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TSND_DTQ_ENTER(dtqid, data, tmout);
 	CHECK_DISPATCH();
@@ -479,9 +479,9 @@ fsnd_dtq(ID dtqid, intptr_t data)
 ER
 rcv_dtq(ID dtqid, intptr_t *p_data)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_RDTQ winfo_rdtq;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_RDTQ	winfo_rdtq;
+	ER			ercd;
 
 	LOG_RCV_DTQ_ENTER(dtqid, p_data);
 	CHECK_DISPATCH();
@@ -562,10 +562,10 @@ prcv_dtq(ID dtqid, intptr_t *p_data)
 ER
 trcv_dtq(ID dtqid, intptr_t *p_data, TMO tmout)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_RDTQ winfo_rdtq;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_RDTQ	winfo_rdtq;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TRCV_DTQ_ENTER(dtqid, p_data, tmout);
 	CHECK_DISPATCH();

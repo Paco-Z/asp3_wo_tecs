@@ -60,7 +60,38 @@ typedef struct sio_port_control_block SIOPCB;
 #define SIO_RDY_SND    1U   /* send callback */
 #define SIO_RDY_RCV    2U   /* receive callback */
 
+/*
+ *  UART interrupt handler definitions (used in target_serial.cfg)
+ *     INHNO: interrupt handler number
+ *     INTNO: interrupt number
+ *     INTPRI: interrupt priority (lower means higher priority)
+ *     INTATR: interrupt attributes (0 means not enabled at the beginning)
+ */
+#define    INHNO_SIO0  ZYNQ_UART1_IRQ
+#define    INTNO_SIO0  ZYNQ_UART1_IRQ
+#define    INTPRI_SIO0    -3
+#define    INTATR_SIO0     0U
+#define    INHNO_SIO1  ZYNQ_UART0_IRQ
+#define    INTNO_SIO1  ZYNQ_UART0_IRQ
+#define    INTPRI_SIO1    -2
+#define    INTATR_SIO1     0U
+
+/*
+ *  UART base address definitions (used in target_serial.c)
+ */
+#define     UART0_BASE  ZYNQ_UART1_BASE
+#define     UART1_BASE  ZYNQ_UART0_BASE
+
 #ifndef TOPPERS_MACRO_ONLY
+/*
+ *  Initalize serial port
+ */
+extern void sio_initialize(intptr_t exinf);
+
+/*
+ *  Terminate serial port
+ */
+extern void sio_terminate(intptr_t exinf);
 
 /*
  *  Open the serial port

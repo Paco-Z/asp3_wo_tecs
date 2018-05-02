@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task.c 244 2014-09-30 18:08:03Z ertl-hiro $
+ *  $Id: task.c 857 2017-12-17 01:28:47Z ertl-hiro $
  */
 
 /*
@@ -117,8 +117,8 @@ initialize_task(void)
 		p_tcb = &(tcb_table[j]);
 		p_tcb->p_tinib = &(tinib_table[j]);
 		p_tcb->actque = false;
-		make_dormant(p_tcb);
 		p_tcb->p_lastmtx = NULL;
+		make_dormant(p_tcb);
 		if ((p_tcb->p_tinib->tskatr & TA_ACT) != 0U) {
 			make_active(p_tcb);
 		}
@@ -253,7 +253,8 @@ search_schedtsk(void)
  *  実行できる状態への遷移
  *
  *  実行すべきタスクを更新するのは，実行できるタスクがなかった場合と，
- *  p_tcbの優先度が実行すべきタスクの優先度よりも高い場合である．
+ *  p_tcbで指定されるタスクの優先度が実行すべきタスクの優先度よりも高
+ *  い場合である．
  */
 #ifdef TOPPERS_tskrun
 
@@ -277,10 +278,10 @@ make_runnable(TCB *p_tcb)
 /*
  *  実行できる状態から他の状態への遷移
  *
- *  実行すべきタスクを更新するのは，p_tcbが実行すべきタスクであった場合
- *  である．p_tcbと同じ優先度のタスクが他にある場合は，p_tcbの次のタス
- *  クが実行すべきタスクになる．そうでない場合は，レディキューをサーチ
- *  する必要がある．
+ *  実行すべきタスクを更新するのは，p_tcbで指定されるタスク（対象タス
+ *  ク）が実行すべきタスクであった場合である．対象タスクと同じ優先度の
+ *  タスクが他にある場合は，対象タスクの次のタスクが実行すべきタスクに
+ *  なる．そうでない場合は，レディキューをサーチする必要がある．
  */
 #ifdef TOPPERS_tsknrun
 
@@ -346,13 +347,15 @@ make_active(TCB *p_tcb)
 /*
  *  タスクの優先度の変更
  *
- *  タスクが実行できる状態の場合には，レディキューの中での位置を変更す
- *  る．オブジェクトの待ちキューの中で待ち状態になっている場合には，待
- *  ちキューの中での位置を変更する．
+ *  p_tcbで指定されるタスク（対象タスク）が実行できる状態の場合には，
+ *  レディキューの中での位置を変更する．オブジェクトの待ちキューの中で
+ *  待ち状態になっている場合には，待ちキューの中での位置を変更する．
  *
- *  実行すべきタスクを更新するのは，(1) p_tcbが実行すべきタスクであって，
- *  その優先度を下げた場合，(2) p_tcbが実行すべきタスクではなく，変更後
- *  の優先度が実行すべきタスクの優先度よりも高い場合である．(1)の場合に
+ *  実行すべきタスクを更新するのは，(1) 対象タスクが実行すべきタスクで
+ *  あった場合には，優先度を下げた（または優先度が変わらなかった）時，
+ *  (2) 対象タスクが実行すべきタスクでなかった場合には，変更後の優先度
+ *  が実行すべきタスクの優先度よりも高いか同じ時（同じ場合に更新が必要
+ *  になるのは，実際には，mtxmodeがtrueの場合のみ）である．(1)の場合に
  *  は，レディキューをサーチする必要がある．
  */
 #ifdef TOPPERS_tskpri
@@ -388,9 +391,8 @@ change_priority(TCB *p_tcb, uint_t newpri, bool_t mtxmode)
 				}
 			}
 			else {
-				if (mtxmode ? newpri <= p_schedtsk->priority
-							: newpri < p_schedtsk->priority) {
-					p_schedtsk = p_tcb;
+				if (newpri <= p_schedtsk->priority) {
+					p_schedtsk = (TCB *)(ready_queue[newpri].p_next);
 				}
 			}
 		}

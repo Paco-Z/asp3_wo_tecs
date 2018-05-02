@@ -1,7 +1,7 @@
 #
 #		Makefile のターゲット依存部（GR-PEACH用）
 #
-#  $Id: Makefile.target 732 2016-04-03 03:08:05Z ertl-hiro $
+#  $Id: Makefile.target 914 2018-03-07 10:16:16Z ertl-hiro $
 # 
 
 #
@@ -48,12 +48,6 @@ KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o pl310.o
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) target_support.o
 
 #
-#  システムサービスに関する定義
-#
-SYSSVC_DIRS := $(SYSSVC_DIRS)
-SYSSVC_COBJS := $(SYSSVC_COBJS) scif.o chip_serial.o
-
-#
 #  コンパイルオプションとリンカスクリプトの定義
 #
 ifeq ($(EXECUTE_ON),ROM)
@@ -65,43 +59,14 @@ else
 endif
 
 #
-#  GNU開発環境のターゲットアーキテクチャの定義
-#
-GCC_TARGET = arm-none-eabi
-#GCC_TARGET = arm-atollic-eabi
-
-#
 #  トレースログ記録のサンプルコードに関する定義
 #
-ifeq ($(ENABLE_TRACE),true)
+ifdef ENABLE_TRACE
 	COPTS := $(COPTS) -DTOPPERS_ENABLE_TRACE
 	SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/tracelog
 endif
 
 #
-#  チップ依存部のインクルード
+#  チップ依存部
 #
 include $(SRCDIR)/arch/arm_gcc/rza1/Makefile.chip
-
-
-#
-#  フラッシュへの書き込み
-#
-OPENOCD_DIR  = c:/arm/OpenOCD/0.10.0-201601101000-dev
-OPENOCD_PATH = ${OPENOCD_DIR}/bin/openocd.exe
-OPENOCD_SCRIPT_PATH = ${OPENOCD_DIR}/scripts
-OPENOCD_SCRIPT1  = ${OPENOCD_DIR}/scripts/interface/cmsis-dap.cfg
-OPENOCD_SCRIPT2  = ${OPENOCD_DIR}/scripts/target/renesas_rza1h_swd.cfg 
-GDB = arm-gdb_m0.exe
-
-ifeq ($(EXECUTE_ON),RAM)
-	GDBINI = gdb_ram.ini
-else
-	GDBINI = gdb_rom.ini
-endif
-
-ocd: $(OBJNAME).bin
-	cygstart `cygpath -u "$(OPENOCD_PATH)"` '-s "$(OPENOCD_SCRIPT_PATH)"' '-f "$(OPENOCD_SCRIPT1)"' '-f "$(OPENOCD_SCRIPT2)"'
-
-db: $(OBJNAME).bin
-	$(GDB) $(OBJFILE) -x $(TARGETDIR)/${GDBINI}

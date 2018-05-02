@@ -3,7 +3,7 @@
 		ルネサス RZ/AおよびGR-PEACHに関するメモ
 
 		作成者: 高田広章（名古屋大学）
-		最終更新: 2016年3月21日
+		最終更新: 2018年1月19日
 
 ○メモの位置づけ
 
@@ -15,45 +15,86 @@ TOPPERSカーネルをポーティングするにあたって必要となる事�
 
 ・参考文献
 ・RZ/Aとは？
+・Cortex-A9
 ・RZ/A1チップ依存部
+・コア
+・割込みコントローラ
+・シリアルインタフェース
+・OSタイマ
 
 ○参考文献
 
 [1] RZ/A1Hグループ，RZ/A1Mグループ ユーザーズマニュアル ハードウェア編
+Rev.3.00 2016.11
+r01uh0403jj0300_rz_a1h.pdf
+
+※ 古いバージョン
 Rev.2.00 2015.05
 r01uh0403jj0200_rz_a1h.pdf
 
-[2] RZ/A1Lグループ ユーザーズマニュアル ハードウェア編
+[2] RZ/A1Lグループ、RZ/A1LUグループ、RZ/A1LCグループ ユーザーズマニュ
+アル ハードウェア編
+Rev.3.00 2016.11
+r01uh0437jj0300_rz_a1l.pdf
+
+※ 古いバージョン
 Rev.2.00 2015.05
 r01uh0437jj0200_rz_a1l.pdf
+
+[3] Cortex-A9 Technical Reference Manual, 2012
+Revision: r4p1
+DDI0388.pdf
+
+[4] Cortex-A9 Floating-Point Unit Technical Reference Manual, 2012
+Revision: r4p1
+DDI0408I_cortex_a9_fpu_r4p1_trm.pdf
+
+[5] ARM CortexTM-A9 processors Software Developers Errata Notice
+r4 releases
+UAN0009_cortex_a9_errata_r4.pdf
 
 ○RZ/Aシリーズとは？
 
 RZ/Aシリーズとは，ARM Cortex-A9コアを搭載したルネサスの一連のマイコンの
-総称で，現時点で以下の4つのチップがある．
+総称で，現時点で以下の5つのチップがある．
 
 ・RZ/A1L
 ・RZ/A1LU
+・RZ/A1LC
 ・RZ/A1M
 ・RZ/A1H
 
 これらはいずれも，動作周波数400MHzのARM Cortex-A9コアを1つ搭載している
 が，搭載するRAM容量や周辺デバイスに違いがある．
 
+○Cortex-A9（[3]）
+
+・Advanced SIMD（NEON Media Processing Engine）
+	- オプション
+	- Advanced SIMD と VFPv3-D32 命令セットを提供
+
+・FPU（浮動小数点ユニット）
+	- Advanced SIMD を含めない時にオプションとして実装可能
+	- VFPv3-D16 FPU，トラップなしの実行
+	- VFPショートベクタ機能（deprecated）をサポートしない
+
 ○RZ/A1チップ依存部
 
-TOPPERS/ASP3カーネルでは，上の4つのチップをRZ/A1と総称し（今後，RZ/A2x
+TOPPERS/ASP3カーネルでは，上の5つのチップをRZ/A1と総称し（今後，RZ/A2x
 が出てくると想像し，RZ/A1と称している），その共通部をarch/arm_gcc/rza1
-ディレクトリに置くことにする．ただし，現時点で4つのチップすべてに対応で
-きているわけではない．
+ディレクトリに置くことにする．ただし，現時点で5つのチップすべてに対応
+できているわけではない．
 
-○コア
+○コア（[1] 2.1節）
 
 ・ARM Cortex-A9 MPCore × 1コア（Revision: r3p0）
 	命令キャッシュ：32KB
 	データキャッシュ：32KB
 	TLBエントリ：128
-	Jazelle，メディアプロセッシングエンジン，FPU，PTMインタフェース
+	Jazelle：フル実装
+	メディアプロセッシングエンジン（NEON）：サポートする
+	FPU：サポートする
+	PTMインタフェース：サポートする
 	内蔵の割込みコントローラは使用しない
 	プライベートメモリ領域のベースアドレス：0xf0000000
 
@@ -84,9 +125,16 @@ TOPPERS/ASP3カーネルでは，上の4つのチップをRZ/A1と総称し（�
 |	0xe8201d44		spi_status16	SPIステータスレジスタ16（GICv1相当）
 	0xe8201f00		ICDSGIR			ソフトウェア生成割込みレジスタ
 
-	0xe8202000		ICCICR	CPUインタフェース制御レジスタ
-							→ CPUインタフェース制御レジスタ（GICC_CTLR）
-	……
+	0xe8202000		ICCICR	CPUインタフェース制御レジスタ	→ GICC_CTLR
+	0xe8202004		ICCPMR	割り込み優先度マスクレジスタ	→ GICC_PMR
+	0xe8202008		ICCBPR	2進小数点レジスタ				→ GICC_BPR
+	0xe820200c		ICCIAR	割り込み応答レジスタ			→ GICC_IAR
+	0xe8202010		ICCEOIR	割り込み終了レジスタ			→ GICC_EOIR
+	0xe8202014		ICCRPR	実行優先度レジスタ				→ GICC_RPR
+	0xe8202018		ICCHPIR	最優先保留割り込みレジスタ		→ GICC_HPPIR
+	0xe820201c		ICCABPR	エイリアスされた非セキュア2進小数点レジスタ
+															→ GICC_ABPR
+	0xe82020fc		ICCIIDR	CPUインタフェース実装識別レジスタ	→ GICC_IIDR
 
 　割込みコントロールレジスタ0（ICR0）
 	- NMI入力レベルの読み出し
@@ -108,9 +156,23 @@ TOPPERS/ASP3カーネルでは，上の4つのチップをRZ/A1と総称し（�
 	- 端子割込み
 
 ・IRQ割込みと内蔵周辺モジュール割込みに対して，割込みコンフィギュレーショ
-　ンレジスタ（GICD_ICFGRn）を指定された値に初期化する．
+　ンレジスタ（GICD_ICFGRn）を指定された値（[3][4] 表7.4）に初期化する．
 	→ gic_kernel_impl.cにフックを入れることが必要
 	→ 一括して初期化しなくても正しく動いている
+	- 表7.4では，各割込みに対する下位ビットを1にしている
+		→ GIC_ARM11MPCOREを定義する
+
+・割り込み動作の流れ（[3][4] 7.6.2節）
+	- GICC_IARを読む前に，GICC_HPPIRを読むことになっている
+		→ ★現実装ではそのようにしていない
+
+・使用上の注意事項（[3][4] 7.8節）
+	- 割り込み要因クリアのタイミング
+		→ 余計な割込みが発生する可能性，アプリレーション側で対応
+	- IRQ割り込みに端子機能を切り換えるときの注意
+		→ 余計な割込みが発生する可能性，アプリレーション側で対応
+	- 割り込み応答レジスタ（ICCIAR）で割り込みIDの値を読み出すときの注意
+		→ カーネルで対応が必要か？（★現実装では未対応）
 
 ○シリアルインタフェース
 

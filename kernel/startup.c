@@ -84,6 +84,13 @@ void
 sta_ker(void)
 {
 	/*
+	 *  TECSの初期化
+	 */
+#ifndef TOPPERS_OMIT_TECS
+	initialize_tecs();
+#endif /* TOPPERS_OMIT_TECS */
+
+	/*
 	 *  ターゲット依存の初期化
 	 */
 	target_initialize();

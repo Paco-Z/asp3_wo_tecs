@@ -9,8 +9,8 @@
 #define dispatch					_kernel_dispatch
 #define start_dispatch				_kernel_start_dispatch
 #define exit_and_dispatch			_kernel_exit_and_dispatch
-#define ret_int						_kernel_ret_int
-#define ret_exc						_kernel_ret_exc
+#define int_handler_entry			_kernel_int_handler_entry
+#define exc_handler_entry			_kernel_exc_handler_entry
 #define call_exit_kernel			_kernel_call_exit_kernel
 #define start_r						_kernel_start_r
 #define target_initialize			_kernel_target_initialize
@@ -33,7 +33,7 @@
 #define target_ovrtimer_handler		_kernel_target_ovrtimer_handler
 
 /*
- *  trace_config.c
+ *  tTraceLog.c
  */
 #define log_dsp_enter				_kernel_log_dsp_enter
 #define log_dsp_leave				_kernel_log_dsp_leave

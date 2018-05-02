@@ -3,3 +3,4 @@ VERSION %date
 
 INCLUDE ../../MANIFEST
 INCLUDE ../../arch/arm_gcc/MANIFEST
+INCLUDE ../../tecsgen/MANIFEST_for_asp3

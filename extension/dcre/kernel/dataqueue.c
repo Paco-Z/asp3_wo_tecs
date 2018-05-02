@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: dataqueue.c 781 2017-03-10 23:31:33Z ertl-hiro $
+ *  $Id: dataqueue.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -355,7 +355,7 @@ acre_dtq(const T_CDTQ *pk_cdtq)
 	dtqcnt = pk_cdtq->dtqcnt;
 	p_dtqmb = pk_cdtq->dtqmb;
 
-	CHECK_RSATR(dtqatr, TA_TPRI);
+	CHECK_VALIDATR(dtqatr, TA_TPRI);
 
 	lock_cpu();
 	if (tnum_dtq == 0 || queue_empty(&free_dtqcb)) {
@@ -363,7 +363,7 @@ acre_dtq(const T_CDTQ *pk_cdtq)
 	}
 	else {
 		if (dtqcnt != 0 && p_dtqmb == NULL) {
-			p_dtqmb = kernel_malloc(sizeof(DTQMB) * dtqcnt);
+			p_dtqmb = malloc_mpk(sizeof(DTQMB) * dtqcnt);
 			dtqatr |= TA_MBALLOC;
 		}
 		if (dtqcnt != 0 && p_dtqmb == NULL) {
@@ -422,7 +422,7 @@ del_dtq(ID dtqid)
 		init_wait_queue(&(p_dtqcb->rwait_queue));
 		p_dtqinib = (DTQINIB *)(p_dtqcb->p_dtqinib);
 		if ((p_dtqinib->dtqatr & TA_MBALLOC) != 0U) {
-			kernel_free(p_dtqinib->p_dtqmb);
+			free_mpk(p_dtqinib->p_dtqmb);
 		}
 		p_dtqinib->dtqatr = TA_NOEXS;
 		queue_insert_prev(&free_dtqcb, &(p_dtqcb->swait_queue));
@@ -448,9 +448,9 @@ del_dtq(ID dtqid)
 ER
 snd_dtq(ID dtqid, intptr_t data)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_SDTQ winfo_sdtq;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_SDTQ	winfo_sdtq;
+	ER			ercd;
 
 	LOG_SND_DTQ_ENTER(dtqid, data);
 	CHECK_DISPATCH();
@@ -537,10 +537,10 @@ psnd_dtq(ID dtqid, intptr_t data)
 ER
 tsnd_dtq(ID dtqid, intptr_t data, TMO tmout)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_SDTQ winfo_sdtq;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_SDTQ	winfo_sdtq;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TSND_DTQ_ENTER(dtqid, data, tmout);
 	CHECK_DISPATCH();
@@ -633,9 +633,9 @@ fsnd_dtq(ID dtqid, intptr_t data)
 ER
 rcv_dtq(ID dtqid, intptr_t *p_data)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_RDTQ winfo_rdtq;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_RDTQ	winfo_rdtq;
+	ER			ercd;
 
 	LOG_RCV_DTQ_ENTER(dtqid, p_data);
 	CHECK_DISPATCH();
@@ -722,10 +722,10 @@ prcv_dtq(ID dtqid, intptr_t *p_data)
 ER
 trcv_dtq(ID dtqid, intptr_t *p_data, TMO tmout)
 {
-	DTQCB	*p_dtqcb;
-	WINFO_RDTQ winfo_rdtq;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	DTQCB		*p_dtqcb;
+	WINFO_RDTQ	winfo_rdtq;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TRCV_DTQ_ENTER(dtqid, p_data, tmout);
 	CHECK_DISPATCH();

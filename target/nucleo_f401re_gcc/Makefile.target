@@ -51,7 +51,7 @@ KERNEL_COBJS := $(KERNEL_COBJS) stm32f4xx_hal_tim.o
 #  システムサービスに関する定義
 #
 SYSSVC_DIRS := $(SYSSVC_DIRS)
-SYSSVC_COBJS := $(SYSSVC_COBJS) usart.o
+SYSSVC_COBJS := $(SYSSVC_COBJS)
 
 #
 #  使用するタイマ
@@ -69,9 +69,7 @@ endif
 #
 #  GNU開発環境のターゲットアーキテクチャの定義
 #
-ifndef GCC_TARGET
-	GCC_TARGET = arm-none-eabi
-endif
+GCC_TARGET = arm-none-eabi
 
 #
 #  トレースログ記録のサンプルコードに関する定義

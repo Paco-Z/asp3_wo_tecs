@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: kernel_check.trb 662 2016-02-27 02:33:51Z ertl-hiro $
+#   $Id: kernel_check.trb 925 2018-03-24 08:59:01Z ertl-hiro $
 #  
 
 #
@@ -229,9 +229,8 @@ end
 # 
 tinib = SYMBOL("_kernel_tinib_table")
 $cfgData[:CRE_TSK].sort.each do |key, params|
-  task = PEEK(tinib + $offsetof_TINIB_task, $sizeof_TASK)
-
   # タスクの先頭番地のチェック［NGKI1033］
+  task = PEEK(tinib + $offsetof_TINIB_task, $sizeof_TASK)
   if (task & ($CHECK_FUNC_ALIGN - 1)) != 0
     error_wrong_id("E_PAR", params, :task, :tskid, "not aligned")
   end

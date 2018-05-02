@@ -5,7 +5,7 @@
  *
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  *
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  $Id: sample1.h 725 2016-04-02 21:50:49Z ertl-hiro $
+ *  $Id: sample1.h 892 2018-02-23 07:03:58Z ertl-hiro $
  */
 
 /*
@@ -75,9 +75,9 @@
 #define	STACK_SIZE		4096		/* タスクのスタックサイズ */
 #endif /* STACK_SIZE */
 
-#ifndef KMM_SIZE
-#define	KMM_SIZE		(STACK_SIZE * 16)	/* カーネルが割り付ける   */
-#endif /* KMM_SIZE */						/*     メモリ領域のサイズ */
+#ifndef MPK_SIZE					/* カーネルメモリプール領域のサイズ */
+#define	MPK_SIZE		(STACK_SIZE * 16)
+#endif /* MPK_SIZE */
 
 #ifndef LOOP_REF
 #define LOOP_REF		ULONG_C(1000000)	/* 速度計測用のループ回数 */

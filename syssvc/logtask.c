@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2011 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: logtask.c 108 2014-05-11 01:30:18Z ertl-hiro $
+ *  $Id: logtask.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -52,9 +51,25 @@
 #include "logtask.h"
 
 /*
- *  システムログタスクの出力先のポートID
+ *  システムログタスクの出力先のシリアルポートID
  */
-static ID	logtask_portid;
+#ifndef LOGTASK_PORTID
+#define LOGTASK_PORTID		1
+#endif /* LOGTASK_PORTID */
+
+/*
+ *  システムログタスクの動作間隔（μ秒）
+ */
+#ifndef LOGTASK_INTERVAL
+#define LOGTASK_INTERVAL	10000U
+#endif /* LOGTASK_INTERVAL */
+
+/*
+ *  フラッシュ待ちの単位時間（μ秒）
+ */
+#ifndef LOGTASK_FLUSH_WAIT
+#define LOGTASK_FLUSH_WAIT	1000U
+#endif /* LOGTASK_FLUSH_WAIT */
 
 /*
  *  シリアルインタフェースへの1文字出力
@@ -62,7 +77,7 @@ static ID	logtask_portid;
 static void
 logtask_putc(char c)
 {
-	(void) serial_wri_dat(logtask_portid, &c, 1);
+	(void) serial_wri_dat(LOGTASK_PORTID, &c, 1);
 }
 
 /*
@@ -90,7 +105,7 @@ logtask_flush(uint_t count)
 					 *  countが0の場合には，シリアルバッファが空かを確
 					 *  認する．
 					 */
-					if (serial_ref_por(logtask_portid, &rpor) < 0) {
+					if (serial_ref_por(LOGTASK_PORTID, &rpor) < 0) {
 						ercd = E_SYS;
 						goto error_exit;
 					}
@@ -106,11 +121,11 @@ logtask_flush(uint_t count)
 			}
 
 			/*
-			 *  LOGTASK_FLUSH_WAITμ秒待つ．
+			 *  フラッシュ待ちの単位時間（LOGTASK_FLUSH_WAITμ秒）待つ．
 			 */
 			rercd = dly_tsk(LOGTASK_FLUSH_WAIT);
 			if (rercd < 0) {
-				ercd = (rercd == E_RLWAI) ? rercd : E_SYS;
+				ercd = (MERCD(rercd) == E_RLWAI) ? rercd : E_SYS;
 				goto error_exit;
 			}
 		}
@@ -126,30 +141,27 @@ logtask_flush(uint_t count)
 void
 logtask_main(intptr_t exinf)
 {
-	SYSLOG	logbuf;
-	uint_t	lostlog;
+	SYSLOG	syslog;
+	uint_t	lost;
 	ER_UINT	rercd;
 
-	logtask_portid = (ID) exinf;
-	(void) serial_opn_por(logtask_portid);
+	(void) serial_opn_por(LOGTASK_PORTID);
 	(void) syslog_msk_log(LOG_UPTO(LOG_NOTICE), LOG_UPTO(LOG_EMERG));
 	syslog_1(LOG_NOTICE, "System logging task is started on port %d.",
-													logtask_portid);
+													LOGTASK_PORTID);
 	for (;;) {
-		lostlog = 0U;
-		while ((rercd = syslog_rea_log(&logbuf)) >= 0) {
-			lostlog += (uint_t) rercd;
-			if (logbuf.logtype >= LOG_TYPE_COMMENT) {
-				if (lostlog > 0U) {
-					syslog_lostmsg(lostlog, logtask_putc);
-					lostlog = 0U;
-				}
-				syslog_print(&logbuf, logtask_putc);
-				logtask_putc('\n');
+		lost = 0U;
+		while ((rercd = syslog_rea_log(&syslog)) >= 0) {
+			lost += (uint_t) rercd;
+			if (lost > 0U) {
+				syslog_lostmsg(lost, logtask_putc);
+				lost = 0U;
 			}
+			syslog_print(&syslog, logtask_putc);
+			logtask_putc('\n');
 		}
-		if (lostlog > 0U) {
-			syslog_lostmsg(lostlog, logtask_putc);
+		if (lost > 0U) {
+			syslog_lostmsg(lost, logtask_putc);
 		}
 		(void) dly_tsk(LOGTASK_INTERVAL);
 	}
@@ -162,7 +174,7 @@ void
 logtask_terminate(intptr_t exinf)
 {
 	char	c;
-	SYSLOG	logbuf;
+	SYSLOG	syslog;
 	bool_t	msgflg = false;
 	ER_UINT	rercd;
 
@@ -170,7 +182,7 @@ logtask_terminate(intptr_t exinf)
 	 *  シリアルインタフェースドライバの送信バッファに蓄積されたデータ
 	 *  を，低レベル出力機能を用いて出力する．
 	 */
-	while (serial_get_chr(logtask_portid, &c)) {
+	while (serial_get_chr(LOGTASK_PORTID, &c)) {
 		target_fput_log(c);
 	}
 
@@ -178,7 +190,7 @@ logtask_terminate(intptr_t exinf)
 	 *  ログバッファに記録されたログ情報を，低レベル出力機能を用いて出
 	 *  力する．
 	 */
-	while ((rercd = syslog_rea_log(&logbuf)) >= 0) {
+	while ((rercd = syslog_rea_log(&syslog)) >= 0) {
 		if (!msgflg) {
 			/*
 			 *  ログバッファに残ったログ情報であることを示す文字列を出
@@ -190,9 +202,7 @@ logtask_terminate(intptr_t exinf)
 		if (rercd > 0) {
 			syslog_lostmsg((uint_t) rercd, target_fput_log);
 		}
-		if (logbuf.logtype >= LOG_TYPE_COMMENT) {
-			syslog_print(&logbuf, target_fput_log);
-			target_fput_log('\n');
-		}
+		syslog_print(&syslog, target_fput_log);
+		target_fput_log('\n');
 	}
 }

@@ -1,7 +1,6 @@
 PACKAGE asp3
 
-bit_kernel.c
-bit_mutex.c
+MANIFEST
 hrt_systim1.c
 hrt_systim1.cfg
 hrt_systim1.h
@@ -14,7 +13,6 @@ hrt_systim3.h
 hrt_systim4.c
 hrt_systim4.cfg
 hrt_systim4.h
-MANIFEST
 perf0.c
 perf0.cfg
 perf0.h
@@ -33,11 +31,13 @@ perf4.h
 perf5.c
 perf5.cfg
 perf5.h
+perf_pf.cdl
+tBitKernel.c
+tBitMutex.c
 test_cpuexc.cfg
 test_cpuexc.h
 test_cpuexc.txt
 test_cpuexc1.c
-test_cpuexc10.c
 test_cpuexc2.c
 test_cpuexc3.c
 test_cpuexc4.c
@@ -46,12 +46,16 @@ test_cpuexc6.c
 test_cpuexc7.c
 test_cpuexc8.c
 test_cpuexc9.c
+test_cpuexc10.c
 test_dlynse.c
 test_dlynse.cfg
 test_dlynse.h
 test_dtq1.c
 test_dtq1.cfg
 test_dtq1.h
+test_exttsk.c
+test_exttsk.cfg
+test_exttsk.h
 test_flg1.c
 test_flg1.cfg
 test_flg1.h
@@ -86,6 +90,9 @@ test_mutex8.h
 test_notify1.c
 test_notify1.cfg
 test_notify1.h
+test_pf.cdl
+test_pf_bitkernel.cdl
+test_pf_bitmutex.cdl
 test_raster1.c
 test_raster1.cfg
 test_raster1.h

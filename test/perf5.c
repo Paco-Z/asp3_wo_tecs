@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: perf5.c 544 2016-01-16 05:34:11Z ertl-hiro $
+ *  $Id: perf5.c 964 2018-05-02 07:53:57Z ertl-hiro $
  */
 
 /*
@@ -94,14 +94,27 @@ static ID alarm3_list[30] = {
 void main_task(intptr_t exinf)
 {
 	uint_t	i, j;
+	ER		ercd;
 
 	syslog_0(LOG_NOTICE, "Performance evaluation program (5)");
-	init_hist(1);
-	init_hist(2);
-	init_hist(3);
-	init_hist(4);
-	init_hist(5);
-	init_hist(6);
+	ercd = init_hist(1);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(2);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(3);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(4);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(5);
+	check_ercd(ercd, E_OK);
+
+	ercd = init_hist(6);
+	check_ercd(ercd, E_OK);
+
 
 	/*
 	 *  繰り返し計測
@@ -112,82 +125,121 @@ void main_task(intptr_t exinf)
 		 *
 		 *  性能評価中に高分解能タイマが再設定されるのを避けるため．
 		 */
-		sta_alm(ALM0, ALM_RELTIM0);
+		ercd = sta_alm(ALM0, ALM_RELTIM0);
+		check_ercd(ercd, E_OK);
+
 
 		/*
 		 *  30個のアラームハンドラを長い時間で動作開始
 		 */
-		begin_measure(1);
+		ercd = begin_measure(1);
+		check_ercd(ercd, E_OK);
+
 		for (i = 0; i < 30; i++) {
-			sta_alm(alarm1_list[i], ALM_RELTIM1);
+			ercd = sta_alm(alarm1_list[i], ALM_RELTIM1);
+			check_ercd(ercd, E_OK);
 		}
-		end_measure(1);
+
+		ercd = end_measure(1);
+		check_ercd(ercd, E_OK);
 
 		/*
 		 *  30個のアラームハンドラを中間の時間で動作開始
 		 */
-		begin_measure(2);
+		ercd = begin_measure(2);
+		check_ercd(ercd, E_OK);
+
 		for (i = 0; i < 30; i++) {
-			sta_alm(alarm2_list[i], ALM_RELTIM2);
+			ercd = sta_alm(alarm2_list[i], ALM_RELTIM2);
+			check_ercd(ercd, E_OK);
 		}
-		end_measure(2);
+
+		ercd = end_measure(2);
+		check_ercd(ercd, E_OK);
 
 		/*
 		 *  30個のアラームハンドラを短い時間で動作開始
 		 */
-		begin_measure(3);
+		ercd = begin_measure(3);
+		check_ercd(ercd, E_OK);
+
 		for (i = 0; i < 30; i++) {
-			sta_alm(alarm3_list[i], ALM_RELTIM3);
+			ercd = sta_alm(alarm3_list[i], ALM_RELTIM3);
+			check_ercd(ercd, E_OK);
 		}
-		end_measure(3);
+
+		ercd = end_measure(3);
+		check_ercd(ercd, E_OK);
 
 		/*
 		 *  短い時間で動作開始した30個のアラームハンドラを動作停止
 		 */
-		begin_measure(6);
+		ercd = begin_measure(6);
+		check_ercd(ercd, E_OK);
+
 		for (i = 0; i < 30; i++) {
-			stp_alm(alarm3_list[i]);
+			ercd = stp_alm(alarm3_list[i]);
+			check_ercd(ercd, E_OK);
 		}
-		end_measure(6);
+
+		ercd = end_measure(6);
+		check_ercd(ercd, E_OK);
 
 		/*
 		 *  中間の時間で動作開始した30個のアラームハンドラを動作停止
 		 */
-		begin_measure(5);
+		ercd = begin_measure(5);
+		check_ercd(ercd, E_OK);
+
 		for (i = 0; i < 30; i++) {
-			stp_alm(alarm2_list[29 - i]);		/* 逆順で動作停止 */
+			ercd = stp_alm(alarm2_list[29 - i]);	/* 逆順で動作停止 */
+			check_ercd(ercd, E_OK);
 		}
-		end_measure(5);
+
+		ercd = end_measure(5);
+		check_ercd(ercd, E_OK);
 
 		/*
 		 *  長い時間で動作開始した30個のアラームハンドラを動作停止
 		 */
-		begin_measure(4);
+		ercd = begin_measure(4);
+		check_ercd(ercd, E_OK);
+
 		for (i = 0; i < 30; i++) {
-			stp_alm(alarm1_list[29 - i]);		/* 逆順で動作停止 */
+			ercd = stp_alm(alarm1_list[29 - i]);	/* 逆順で動作停止 */
+			check_ercd(ercd, E_OK);
 		}
-		end_measure(4);
+
+		ercd = end_measure(4);
+		check_ercd(ercd, E_OK);
 	}
 
 	/*
 	 *  測定結果の出力
 	 */
 	syslog_0(LOG_NOTICE, "Execution times of 30 short sta_alm");
-	print_hist(1);
+	ercd = print_hist(1);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE, "Execution times of 30 medium sta_alm");
-	print_hist(2);
+	ercd = print_hist(2);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE, "Execution times of 30 long sta_alm");
-	print_hist(3);
+	ercd = print_hist(3);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE, "Execution times of 30 short stp_alm");
-	print_hist(4);
+	ercd = print_hist(4);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE, "Execution times of 30 medium stp_alm");
-	print_hist(5);
+	ercd = print_hist(5);
+	check_ercd(ercd, E_OK);
 
 	syslog_0(LOG_NOTICE, "Execution times of 30 long stp_alm");
-	print_hist(6);
+	ercd = print_hist(6);
+	check_ercd(ercd, E_OK);
+
 	check_finish(0);
 }

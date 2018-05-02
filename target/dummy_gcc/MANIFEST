@@ -1,8 +1,14 @@
 PACKAGE asp3
 
-dummy.h
-Makefile.target
 MANIFEST
+Makefile.target
+dummy.h
+start.c
+tPutLogDummy.c
+tPutLogDummy.cdl
+tSIOPortDummy.cdl
+tSIOPortDummyMain.c
+target.cdl
 target_cfg1_out.h
 target_check.trb
 target_kernel.cfg
@@ -13,9 +19,6 @@ target_kernel_impl.h
 target_offset.trb
 target_rename.def
 target_rename.h
-target_serial.c
-target_serial.cfg
-target_serial.h
 target_sil.h
 target_stddef.h
 target_sym.def

@@ -51,15 +51,14 @@ KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o target_timer.o
 #  システムサービスに関する定義
 #
 SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/arm_gcc/common
-SYSSVC_COBJS := $(SYSSVC_COBJS) target_serial.o uart_pl011.o
+SYSSVC_COBJS := $(SYSSVC_COBJS)
 
 #
 #  トレースログ記録のサンプルコードに関する定義
 #
 ifdef ENABLE_TRACE
 	COPTS := $(COPTS) -DTOPPERS_ENABLE_TRACE
-	KERNEL_DIRS := $(KERNEL_DIRS) $(SRCDIR)/arch/logtrace
-	KERNEL_COBJS := $(KERNEL_COBJS) trace_config.o trace_dump.o
+	SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/tracelog
 endif
 
 #

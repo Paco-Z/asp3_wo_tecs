@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2013-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2013-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_stddef.h 509 2016-01-12 06:06:14Z ertl-hiro $
+ *  $Id: target_stddef.h 929 2018-03-27 13:16:12Z ertl-hiro $
  */
 
 /*
@@ -63,12 +63,10 @@
 /*
  *  開発環境の標準インクルードファイルの利用
  *
- *  C99互換の整数型の定義をstdint.hから取り込む．stdlib.hは，abortの宣
- *  言を取り込むためにインクルードしている．
+ *  C99互換の整数型の定義をstdint.hから取り込む．
  */
 #ifndef TOPPERS_MACRO_ONLY
 #include <stdint.h>
-#include <stdlib.h>
 #endif /* TOPPERS_MACRO_ONLY */
 
 /*
@@ -79,7 +77,7 @@
 Inline void
 TOPPERS_assert_abort(void)
 {
-	abort();
+	while (1);
 }
 
 #endif /* TOPPERS_MACRO_ONLY */

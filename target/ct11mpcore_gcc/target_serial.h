@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2006-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_serial.h 362 2015-07-26 11:29:15Z ertl-hiro $
+ *  $Id: target_serial.h 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -51,7 +51,8 @@
 /*
  *  SIO割込みを登録するための定義
  */
-#define INTNO_SIO		EB_IRQNO_UART0		/* UART割込み番号 */
+#define INTNO_SIO		SIO_UART_IRQNO		/* UART割込み番号 */
+#define ISRPRI_SIO		1					/* UART ISR優先度 */
 #define INTPRI_SIO		(-2)				/* UART割込み優先度 */
 #define INTATR_SIO		TA_NULL				/* UART割込み属性 */
 
@@ -73,42 +74,42 @@ extern void sio_terminate(intptr_t exinf);
 extern void sio_isr(intptr_t exinf);
 
 /*
- *  シリアルI/Oポートのオープン
+ *  SIOポートのオープン
  */
 extern SIOPCB *sio_opn_por(ID siopid, intptr_t exinf);
 
 /*
- *  シリアルI/Oポートのクローズ
+ *  SIOポートのクローズ
  */
 extern void sio_cls_por(SIOPCB *p_siopcb);
 
 /*
- *  シリアルI/Oポートへの文字送信
+ *  SIOポートへの文字送信
  */
 extern bool_t sio_snd_chr(SIOPCB *siopcb, char c);
 
 /*
- *  シリアルI/Oポートからの文字受信
+ *  SIOポートからの文字受信
  */
 extern int_t sio_rcv_chr(SIOPCB *siopcb);
 
 /*
- *  シリアルI/Oポートからのコールバックの許可
+ *  SIOポートからのコールバックの許可
  */
 extern void sio_ena_cbr(SIOPCB *siopcb, uint_t cbrtn);
 
 /*
- *  シリアルI/Oポートからのコールバックの禁止
+ *  SIOポートからのコールバックの禁止
  */
 extern void sio_dis_cbr(SIOPCB *siopcb, uint_t cbrtn);
 
 /*
- *  シリアルI/Oポートからの送信可能コールバック
+ *  SIOポートからの送信可能コールバック
  */
 extern void sio_irdy_snd(intptr_t exinf);
 
 /*
- *  シリアルI/Oポートからの受信通知コールバック
+ *  SIOポートからの受信通知コールバック
  */
 extern void sio_irdy_rcv(intptr_t exinf);
 

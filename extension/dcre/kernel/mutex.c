@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: mutex.c 717 2016-03-31 07:03:53Z ertl-hiro $
+ *  $Id: mutex.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -377,7 +377,7 @@ acre_mtx(const T_CMTX *pk_cmtx)
 		CHECK_PAR(VALID_TPRI(ceilpri));			/*［NGKI2037］*/
 	}
 	else {
-		CHECK_RSATR(mtxatr, TA_TPRI);			/*［NGKI2025］*/
+		CHECK_VALIDATR(mtxatr, TA_TPRI);		/*［NGKI2025］*/
 	}
 
 	lock_cpu();
@@ -472,9 +472,9 @@ del_mtx(ID mtxid)
 ER
 loc_mtx(ID mtxid)
 {
-	MTXCB	*p_mtxcb;
-	WINFO_MTX winfo_mtx;
-	ER		ercd;
+	MTXCB		*p_mtxcb;
+	WINFO_MTX	winfo_mtx;
+	ER			ercd;
 
 	LOG_LOC_MTX_ENTER(mtxid);
 	CHECK_DISPATCH();
@@ -575,10 +575,10 @@ ploc_mtx(ID mtxid)
 ER
 tloc_mtx(ID mtxid, TMO tmout)
 {
-	MTXCB	*p_mtxcb;
-	WINFO_MTX winfo_mtx;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	MTXCB		*p_mtxcb;
+	WINFO_MTX	winfo_mtx;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TLOC_MTX_ENTER(mtxid, tmout);
 	CHECK_DISPATCH();

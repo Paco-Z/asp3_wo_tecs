@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2007-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.c 814 2017-07-25 05:19:11Z ertl-honda $
+ *  $Id: target_kernel_impl.c 969 2018-05-02 09:32:30Z ertl-honda $
  */
 
 /*
@@ -45,7 +45,6 @@
 #include "kernel_impl.h"
 #include <sil.h>
 #include "arm.h"
-#include "target_serial.h"
 #include "pl310.h"
 
 /*
@@ -59,12 +58,11 @@
 /*
  *  MMUへの設定属性（第1レベルディスクリプタ）
  */
-#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX001|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB11)
-#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX000|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB01|ARMV6_MMU_DSCR1_NOEXEC)
+#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX001 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB11)
+#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX000 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB01 \
+							|ARMV6_MMU_DSCR1_NOEXEC)
 
 /*
  *  DDR領域の属性（先頭番地とサイズはzynq7000.hで定義)
@@ -103,16 +101,21 @@ const uint_t arm_tnum_memory_area
 					= sizeof(arm_memory_area) / sizeof(ARM_MMU_CONFIG);
 
 /*
- *  システムログの低レベル出力のための文字出力
+ *  システムログの低レベル出力のための初期化
  */
-void
-target_fput_log(char c)
-{
-	if (c == '\n') {
-		xuartps_pol_putc('\r');
-	}
-	xuartps_pol_putc(c);
-}
+
+#ifndef TOPPERS_OMIT_TECS
+/*
+ *  セルタイプtPutLogZynq7000内に実装されている関数を直接呼び出す．
+ */
+extern void	tPutLogZynq7000_initialize(void);
+
+#else /* TOPPERS_OMIT_TECS */
+
+extern void	sio_initialize(void);
+extern void	target_fput_initialize(void);
+
+#endif /* TOPPERS_OMIT_TECS */
 
 /*
  *  OS起動時の初期化
@@ -151,7 +154,12 @@ target_initialize(void)
 	/*
 	 *  UARTを初期化
 	 */
-	xuartps_init();
+#ifndef TOPPERS_OMIT_TECS
+	tPutLogZynq7000_initialize();
+#else /* TOPPERS_OMIT_TECS */
+	sio_initialize();
+	target_fput_initialize();
+#endif /* TOPPERS_OMIT_TECS */
 }
 
 /*

@@ -2,11 +2,11 @@
  *  TOPPERS/ASP Kernel
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
- *
- *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+ * 
+ *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
- *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
+ * 
+ *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
  *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
@@ -28,14 +28,14 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
- *  $Id: target_kernel_impl.c 734 2016-04-03 09:12:48Z ertl-hiro $
+ * 
+ *  $Id: target_kernel_impl.c 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -61,12 +61,12 @@
 /*
  *  MMUへの設定属性（第1レベルディスクリプタ）
  */
-#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX001|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB11)
-#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX000|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB01|ARMV6_MMU_DSCR1_NOEXEC)
+#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX001 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB11)
+#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX000 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB01 \
+							|ARMV6_MMU_DSCR1_NOEXEC)
+
 /*
  *  MMUの設定情報（メモリエリアの情報）
  */
@@ -203,10 +203,20 @@ port_initialize(void)
 
 /*
  *  システムログの低レベル出力のための初期化
- *
+ */
+#ifndef TOPPERS_OMIT_TECS
+
+/*
  *  セルタイプtPutLogGRPeach内に実装されている関数を直接呼び出す．
  */
 extern void	tPutLogGRPeach_initialize(void);
+
+#else /* TOPPERS_OMIT_TECS */
+
+extern void	sio_initialize(void);
+extern void	target_fput_initialize(void);
+
+#endif /* TOPPERS_OMIT_TECS */
 
 /*
  *  ターゲット依存の初期化
@@ -252,9 +262,14 @@ target_initialize(void)
 	gr_peach_set_led(GR_PEACH_LED_BLUE, 1);
 
 	/*
-	 *  低レベル出力用にSIOを初期化
+	 *  低レベル出力のためにSIOを初期化
 	 */
-	scif_init(USE_SIO_PORTID);
+#ifndef TOPPERS_OMIT_TECS
+	tPutLogGRPeach_initialize();
+#else /* TOPPERS_OMIT_TECS */
+	sio_initialize();
+	target_fput_initialize();
+#endif /* TOPPERS_OMIT_TECS */
 }
 
 /*
@@ -274,18 +289,6 @@ target_exit(void)
 	Asm("bkpt #0");
 
 	while (true) ;
-}
-
-/*
- *  システムログの低レベル出力のための文字出力
- */
-void
-target_fput_log(char c)
-{
-	if (c == '\n') {
-		scif_pol_putc('\r', USE_SIO_PORTID);
-	}
-	scif_pol_putc(c, USE_SIO_PORTID);
 }
 
 /*

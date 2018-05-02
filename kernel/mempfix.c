@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: mempfix.c 471 2015-12-30 10:03:16Z ertl-hiro $
+ *  $Id: mempfix.c 948 2018-04-19 09:10:53Z ertl-hiro $
  */
 
 /*
@@ -176,9 +176,9 @@ get_mpf_block(MPFCB *p_mpfcb, void **p_blk)
 ER
 get_mpf(ID mpfid, void **p_blk)
 {
-	MPFCB	*p_mpfcb;
-	WINFO_MPF winfo_mpf;
-	ER		ercd;
+	MPFCB		*p_mpfcb;
+	WINFO_MPF	winfo_mpf;
+	ER			ercd;
 
 	LOG_GET_MPF_ENTER(mpfid, p_blk);
 	CHECK_DISPATCH();
@@ -252,10 +252,10 @@ pget_mpf(ID mpfid, void **p_blk)
 ER
 tget_mpf(ID mpfid, void **p_blk, TMO tmout)
 {
-	MPFCB	*p_mpfcb;
-	WINFO_MPF winfo_mpf;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	MPFCB		*p_mpfcb;
+	WINFO_MPF	winfo_mpf;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TGET_MPF_ENTER(mpfid, p_blk, tmout);
 	CHECK_DISPATCH();

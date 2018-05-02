@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_timer.h 458 2015-08-21 14:59:09Z ertl-hiro $
+ *  $Id: target_timer.h 920 2018-03-15 16:13:53Z ertl-hiro $
  */
 
 /*
@@ -104,10 +104,10 @@ extern void target_hrt_handler(void);
 /*
  *  オーバランタイマ割込みハンドラ登録のための定数
  */
-#define INHNO_OVRTIMER	TINTNO_OVRTIMER		/* 割込みハンドラ番号 */
-#define INTNO_OVRTIMER	TINTNO_OVRTIMER		/* 割込み番号 */
-#define INTPRI_OVRTIMER	(TMAX_INTPRI)		/* 割込み優先度 */
-#define INTATR_OVRTIMER	TA_EDGE				/* 割込み属性 */
+#define INHNO_OVRTIMER		TINTNO_OVRTIMER		/* 割込みハンドラ番号 */
+#define INTNO_OVRTIMER		TINTNO_OVRTIMER		/* 割込み番号 */
+#define INTPRI_OVRTIMER		TMAX_INTPRI			/* 割込み優先度 */
+#define INTATR_OVRTIMER		TA_EDGE				/* 割込み属性 */
 
 #ifndef TOPPERS_MACRO_ONLY
 

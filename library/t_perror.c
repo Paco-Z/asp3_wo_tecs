@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2006 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: t_perror.c 108 2014-05-11 01:30:18Z ertl-hiro $
+ *  $Id: t_perror.c 909 2018-03-05 05:46:33Z ertl-hiro $
  */
 
 /*
@@ -47,10 +47,21 @@
 #include <t_syslog.h>
 #include <t_stdlib.h>
 
-void
-t_perror(uint_t prio, const char *file, int_t line, const char *expr, ER ercd)
-{
-	syslog_5(prio, "%s (%d) reported by `%s' in line %d of `%s'.",
-						itron_strerror(ercd), SERCD(ercd), expr, line, file);
+#ifndef TOPPERS_OMIT_SYSLOG
 
+static const char	message[] = "%s (%d) reported by `%s' in line %d of `%s'.";
+
+void
+tt_perror(SYSLOG *p_logbuf, const char *file, int_t line,
+		 									const char *expr, ER ercd)
+{
+	p_logbuf->logtype = LOG_TYPE_COMMENT;
+	p_logbuf->logpar[0] = (LOGPAR) message;
+	p_logbuf->logpar[1] = (LOGPAR) itron_strerror(ercd);
+	p_logbuf->logpar[2] = (LOGPAR) SERCD(ercd);
+	p_logbuf->logpar[3] = (LOGPAR) expr;
+	p_logbuf->logpar[4] = (LOGPAR) line;
+	p_logbuf->logpar[5] = (LOGPAR) file;
 }
+
+#endif /* TOPPERS_OMIT_SYSLOG */

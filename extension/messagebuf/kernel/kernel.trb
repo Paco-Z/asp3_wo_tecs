@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: kernel.trb 670 2016-03-03 15:08:11Z ertl-hiro $
+#   $Id: kernel.trb 955 2018-04-28 12:21:11Z ertl-hiro $
 # 
 
 #
@@ -270,7 +270,7 @@ def generateNotifyHandler(key, params, objid)
     else
       error_illegal_id("E_PAR", params, :nfymode, objid)
     end
-			
+
     if nfymode2 != 0
       # エラー通知処理の処理
       $kernelCfgC.add("\tif (ercd != E_OK) {")

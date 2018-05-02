@@ -1,6 +1,6 @@
 =====================================================================
                          ARM-Mプロセッサ依存部
-                                  Last Modified:2017 Jul 25 12:56:20
+                                  Last Modified:2018 May 02 19:20:56
 =====================================================================
 
 
@@ -275,6 +275,9 @@ TOPPERS_ASM_MACRO を条件コンパイルの条件として用いること．
 
 (8) バージョン履歴
 
+2018/05/02
+・3.3.1対応
+
 2017/07/25
 ・core_kernel.trb
   _kernel_bitpat_cfgintの出力に問題があったため修正．
@@ -282,179 +285,3 @@ TOPPERS_ASM_MACRO を条件コンパイルの条件として用いること．
 
 2015/01/07
 ・ASP3カーネル対応
-
-2012/02/29
-・Makefile.core
-  ・CDEFSにTOPPERS_LABEL_ASMを指定していたが，ARM用のgccではアセンブラ
-    のシンボルの前に_を付けないため削除．
-  
-2012/02/02
-・core_config.h
-  ・x_set_ipm()で，iipmが'0'(IIPM_ENAALL)の時の問題を修正．
-・core_support.S
-  ・toppers_asm_custom_idleの前後で使用するレジスタを変更．この変更に
-    より，toppers_asm_custom_idle で関数呼び出しをする場合は，アセンブ
-    ラレベルでのレジスタの保存が必要なくなった．
-    
-2012/02/23
-・core_support.S
-  ・core_exc_entryでbasepriを読み込んだあと，全割込みロック状態のチェ
-    ックために上書きしていた問題を修正
-  ・call_texrtnとcall_texrtnの呼び出しをb命令で記述すると，16bit命令と
-    して解釈するコンパイラがあるため，メモリ配置によってはレンジが足り
-    なくなる．bx命令に変更することで問題を修正．
-
-2012/01/31
-・core_timer.c
- ・タイマ割込みハンドラにて，probe_int のため，COUNTFLAGをクリアするた
-   めに読み込んでいたレジスタが誤っていた問題を修正．
- 
-2011/12/03
-・core_test.h の多重インクルード防止マクロの名称修正
- ・CHIP を CORE に修正．
-
-・ARMCC対応に伴う変更
-  ・core_asm.inc(追加)
-    ・GCCのアセンブラのディレクティブの定義を記述したファイルを追加．
-  ・core_config.h(変更)
-    ・core_insn.h のインクルード方法を""から<>に変更して，コンパイラの
-      引数で指定された順でインクルードファイルをサーチするよう変更．
-   ・メモリバリア命令(Asm("":::"memory"))をマクロ化してcore_insn.h に
-     定義を使用するよう変更．     
-  ・core_insn.h(変更)
-   ・メモリバリア命令(Asm("":::"memory"))のマクロ定義を追加
-  ・core_support.S(変更)
-   ・ARMCCとファイルを共有するため，ディレクティブをマクロに書き換え．      
-  ・start.S(変更)
-   ・ARMCCとファイルを共有するため，ディレクティブをマクロに書き換え．  
-   
-2011/07/26
-・CCRのSTKALIGNが'1'の場合への対応
-  割込み・例外の出入口処理では，スタックは常に8byte境界となるように変
-  更．
-  
-2011/07/25
-・CPU例外の優先度の初期化
-  CPUロックでマスクできない優先度（内部優先度0）に初期化する処理を追加．
-  
-・CFG_INTで使用できる割込み優先度の最大値の修正(core.tf)
-  ・最大値が1つ大きな値となっていた．
-  
-・カーネル管理外の割込みの扱いの変更
-  ・共通部での扱いの変更に伴う変更．
-  
-・タイマ割込みハンドラでのCOUNTFLAGのクリア処理の修正
-  SYSTIC_CONTROL_STATUSレジスタのCOUNTFLAGをクリアするには，
-  SYSTIC_CURRENT_VALUEレジスタを読み込む必要があるが，誤って
-  SYSTIC_CONTROL_STATUSレジスタを読み込んでいた．
-
-・core_int_entryにおけるbasepriの設定
-  NVIC優先度マスクが自動的に設定されるため優先度マスクの点では必要な
-  いが，x_get_ipm()がbasepriを参照するため，basepriも更新するよう変更．
-
-2011/07/24
-・_ret_int_2/svc_handler の変更
-  割込み優先度マスクが全解除状態でしかタスク例外を呼び出さないように
-  仕様が変更されたため，_ret_int_2では，割込み優先度マスクを，全解除
-  状態（TIPM_ENAALL）に設定するよう変更．
-  svc_handlerはタスクにリターンする時にbasepriをIIPM_ENAALLにするよう
-  に変更．
-  
-・x_config_int()/set_exc_int_priority()の修正  
-  x_config_int()から，set_exc_int_priority()に対して外部優先度を引数に
-  して呼び出しいたため，内部優先度を引数で呼び出すよう修正．
-  set_exc_int_priority()も受け取った引数を内部優先度として優先度を設定
-  するように修正．
-
-2011/07/23
-・共通部を1.4.0にupdate.
-
-・arm依存部と同様にチップ依存部を置けるようにディレクトリ構造を変更
-
-・arm依存部と同様にファイル名のプリフィックスをcoreに変更．
-
-・call_atexitの削除
-  software_term_hook の呼び出しは，core_terminate()に移動．
-  
-・共通部を1.7.0にupdate.  
-
-・タスクコンテキストブロックの型名の変更
-  CTXB型をTSKCTXB型に名称変更．
-
-・ターゲット依存部でサポートする機能を示すマクロの変更
-  TOPPERS_SUPPORT_DIS_INTをTOPPERS_TARGET_SUPPORT_DIS_INTに，
-  TOPPERS_SUPPORT_ENA_INTをTOPPERS_TARGET_SUPPORT_ENA_INTに，
-  変更．
-  
-・exc_sense_unlockの定義を削除．  
-  
-・オフセットファイルをコンフィギュレータで生成する方法への対応
-
-・CHECK_FUNC_ALIGN，CHECK_FUNC_NONNULL，CHECK_STACK_ALIGN，
-  CHECK_STACK_NONNULL，CHECK_MPF_ALIGN，CHECK_MPF_NONNULLの定義を，タ
-  ーゲット依存部のテンプレートファイル（パス3）からヘッダファイルに移
-  動．
-
-・割込みと例外の入り口処理の名前を変更
-  int_entryをcore_int_entryへexc_entryをcore_exc_entryに変更．
-  オフセットの取得方法が変更となったため，元の名前のままだとcfg1_out.c
-  がコンパイルエラーとなるために変更．
-  
-・ターゲット依存部で定義する名称のリネームの追加
-
-・call_texrtnを呼び出す条件に「ipmflgがtrue」を追加
- 
-・カーネル管理外のCPU例外の扱いの変更
-
-2011/07/22
-・x_disable_int() : prc_config.h の修正   
- 割込み禁止レジスタのアドレスを取得する際に，ベースの値をuint32_tの
- ポインタにキャストしていなったため，正しいアドレスが生成できていな
- かった問題を修正．
- 
-・非タスクコンテキスト用のスタックの初期値マクロ(TOPPERS_ISTKPT)の修正 
-  : prc_config.h
- バイト単位で取得するように，(char_t *) にキャストして掲載するように修
- 正．
-  
-・LOG_INH_ENTRYとLOG_INH_LEAVEの誤記 : prc_support.S
-  LOG_INH_ENTRYとLOG_INH_LEAVEであるべき箇所が LOG_EXC_ENTRYと
-  LOG_EXC_ENTRYになっている問題を修正．
-
-・TOPPERS_CUSTOM_IDLE のtypoの修正 : prc_support.S
-
-・svn_hanlderの修正 :  prc_support.S
-  一律EXC_FRAME_SIZE分のスタックを捨てていたが，Configureation and 
-  Control Register(CCR)のSTKALIGNが'1'の場  合は，8byte境界にアライン
-  されるため，捨てるサイズが異なる．アラインされたかは，xPSRの9ビッ
-  トをチェックすることにより判定する．
-  
-・prc.tfの修正
-  boostのバージョンによって変わる挙動を吸収．
-  http://www.toppers.jp/TOPPERS-USERS/201004/msg00034.html
-  
-・_kernel_istkpt の削除 : prc_cfg1_out.h
-  _kernel_istkpt が必要ないターゲットが存在するため，必要なら，ターゲ
-  ット依存部で定義するように変更．
-
-2008/08/22
-・prc_user.txt/prc_design.txt
-  ・2008/8/21の技術検討会での議論結果を反映．
-  
-・prc_support.S/prc_config.c/prc_config.h/arm_m.h
-  ・コンテキスト判定をexc_ncntからアクティブなスタックに変更
-  
-・prc_config.c
-  ・set_exc_int_priority() でサポート可能なIRQの上限を239に拡張．
-  
-・start.S 
-  ・起動時はThreadモードを前提としていることを明記．
-  ・ブートローダー等から起動される場合を想定し，MSPを有効にするように
-    変更．
-    
-・prc_timer.c
-  ・コメントを修正
-  ・デバッグ用コードを削除
-
-2008/07/11
-・最初のリリース

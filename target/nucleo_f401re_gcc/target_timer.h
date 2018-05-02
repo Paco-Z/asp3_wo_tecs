@@ -52,6 +52,7 @@
 #else /* USE_SYSTICK_AS_TIMETICK */
 #ifdef USE_TIM_AS_HRT
 #include <sil.h>
+#include "stm32f4xx_nucleo.h"
 
 /*
  *  タイマ割込みハンドラ登録のための定数
@@ -62,8 +63,6 @@
 #define INTATR_TIMER	TA_NULL				/* 割込み属性 */
 
 #ifndef TOPPERS_MACRO_ONLY
-
-#include "nucleo_f401re.h"
 
 extern TIM_HandleTypeDef Tim2Handle;
 extern TIM_HandleTypeDef Tim5Handle;

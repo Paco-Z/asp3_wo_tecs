@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: task.h 452 2015-08-15 02:36:39Z ertl-hiro $
+ *  $Id: task.h 857 2017-12-17 01:28:47Z ertl-hiro $
  */
 
 /*
@@ -282,10 +282,10 @@ extern bool_t	enadsp;
 /*
  *  タスクディスパッチ可能状態
  *
- *  割込み優先度マスク全解除状態であり，ディスパッチ許可状態である（ディ
- *  スパッチ禁止状態でない）ことを示すフラグ．ディスパッチ保留状態でな
- *  いことは，タスクコンテキスト実行中で，CPUロック状態でなく，dspflgが
- *  trueであることで判別することができる．
+ *  割込み優先度マスク全解除状態であり，かつ，ディスパッチ許可状態であ
+ *  る状態（これを，タスクディスパッチ可能状態と呼ぶ）を示すフラグ．ディ
+ *  スパッチ保留状態でないことは，タスクコンテキスト実行中で，CPUロッ
+ *  ク状態でなく，このフラグがtrueであることで判別することができる．
  */
 extern bool_t	dspflg;
 
@@ -385,20 +385,33 @@ extern TCB	*search_schedtsk(void);
 /*
  *  実行できる状態への遷移
  *
- *  p_tcbで指定されるタスクをレディキューに挿入する．レディキューに挿入
- *  したタスクの優先度が，実行すべきタスクの優先度よりも高い場合は，実
- *  行すべきタスクを更新する．
+ *  p_tcbで指定されるタスク（対象タスク）をレディキューに挿入する．タ
+ *  スクディスパッチ可能状態で，対象タスクが最高優先順位になる場合には，
+ *  実行すべきタスクを更新する．
  */
 extern void	make_runnable(TCB *p_tcb);
 
 /*
  *  実行できる状態から他の状態への遷移
  *
- *  p_tcbで指定されるタスクをレディキューから削除する．p_tcbで指定した
- *  タスクが実行すべきタスクであった場合には，実行すべきタスクを更新す
- *  る．
+ *  p_tcbで指定されるタスク（対象タスク）をレディキューから削除する．
+ *  対象タスクが実行すべきタスクであった場合には，実行すべきタスクを更
+ *  新する．タスクディスパッチ可能状態で呼び出さなければならない．
  */
 extern void	make_non_runnable(TCB *p_tcb);
+
+/*
+ *  タスクディスパッチ可能状態への遷移
+ *
+ *  タスクディスパッチ可能状態であることを示すフラグ（dspflg）をtrueに
+ *  し，実行すべきタスクを更新する．
+ */
+Inline void
+set_dspflg(void)
+{
+	dspflg = true;
+	p_schedtsk = search_schedtsk();
+}
 
 /*
  *  休止状態への遷移
@@ -419,11 +432,12 @@ extern void	make_active(TCB *p_tcb);
 /*
  *  タスクの優先度の変更
  *
- *  p_tcbで指定されるタスクの優先度をnewpri（内部表現）に変更する．また，
- *  必要な場合には，実行すべきタスクを更新する．
+ *  p_tcbで指定されるタスク（対象タスク）の優先度をnewpri（内部表現）
+ *  に変更する．また，必要な場合には，実行すべきタスクを更新する．
  *
- *  p_tcbで指定されるタスクの優先順位は，優先度が同じタスクの中で，
- *  mtxmodeがfalseの時は最低，mtxmodeがtrueの時は最高とする．
+ *  対象タスクが実行できる状態である場合，対象タスクの優先順位は，優先
+ *  度が同じタスクの中で，mtxmodeがfalseの時は最低，mtxmodeがtrueの時
+ *  は最高とする．
  */
 extern void	change_priority(TCB *p_tcb, uint_t newpri, bool_t mtxmode);
 

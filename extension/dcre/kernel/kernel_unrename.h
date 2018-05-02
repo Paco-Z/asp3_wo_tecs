@@ -8,10 +8,11 @@
  *  startup.c
  */
 #undef kerflg
+#undef mpk_valid
 #undef exit_kernel
-#undef initialize_kmm
-#undef kernel_malloc
-#undef kernel_free
+#undef initialize_mempool
+#undef malloc_mempool
+#undef free_mempool
 
 /*
  *  task.c
@@ -232,8 +233,8 @@
 #undef istksz
 #undef istk
 #undef istkpt
-#undef kmmsz
-#undef kmm
+#undef mpksz
+#undef mpk
 
 
 #include "target_unrename.h"

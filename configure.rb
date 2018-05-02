@@ -6,7 +6,7 @@
 # 
 #  Copyright (C) 2001-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -38,9 +38,10 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: configure.rb 626 2016-02-12 13:46:32Z ertl-hiro $
+#  $Id: configure.rb 852 2017-11-04 16:19:49Z ertl-hiro $
 # 
 
+Encoding.default_external = 'utf-8'
 require "optparse"
 require "fileutils"
 require "shell"
@@ -68,6 +69,8 @@ require "shell"
 #						トはsampleディレクトリのMakefile）
 #  -d <depdir>			依存関係ファイルのディレクトリ名（デフォルトはdeps）
 #  -w					TECSを使用しない
+#  -W <tecsdir>			TECS関係ファイルのディレクトリ名（デフォルトはソー
+#						スファイルのディレクトリの下のtecsgen）
 #  -r					トレースログ記録のサンプルコードを使用するかどうか
 #						の指定
 #  -V <devtooldir>		開発ツール（コンパイラ等）の置かれているディレクトリ
@@ -166,6 +169,9 @@ OptionParser.new(nil, 22) do |opt|
   opt.on("-w",				"TECS is not used at all") do |val|
     $omit_tecs = true
   end
+  opt.on("-W tecsdir",		"path of TECS file directory") do |val|
+    $tecsdir = val
+  end
   opt.on("-r",				"use the sample code for trace log") do |val|
     $enable_trace = true
   end
@@ -231,7 +237,8 @@ else
 end
 $tempmakefile ||= $srcdir + "/sample/Makefile"
 $cfg ||= $ruby + " \$(SRCDIR)/cfg/cfg.rb"
-$tecsgen ||= $ruby + " \$(SRCDIR)/tecsgen/tecsgen.rb"
+$tecsdir ||= "\$(SRCDIR)/tecsgen"
+$tecsgen ||= $ruby + " \$(TECSDIR)/tecsgen.rb"
 
 #
 #  -Tオプションとターゲット依存部ディレクトリの確認
@@ -270,6 +277,7 @@ $vartable["SRCABSDIR"] = $srcabsdir
 $vartable["SRCLANG"] = $srclang
 $vartable["DEPDIR"] = $depdir
 $vartable["OMIT_TECS"] = $omit_tecs
+$vartable["TECSDIR"] = $tecsdir
 $vartable["ENABLE_TRACE"] = $enable_trace
 $vartable["DEVTOOLDIR"] = $devtooldir
 $vartable["RUBY"] = $ruby

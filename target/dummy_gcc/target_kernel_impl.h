@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: target_kernel_impl.h 515 2016-01-13 02:21:39Z ertl-hiro $
+ *  $Id: target_kernel_impl.h 854 2017-11-04 16:56:17Z ertl-hiro $
  */
 
 /*
@@ -73,7 +73,7 @@
  *  トレースログに関する設定
  */
 #ifdef TOPPERS_ENABLE_TRACE
-#include "arch/logtrace/trace_config.h"
+#include "arch/tracelog/trace_log.h"
 #endif /* TOPPERS_ENABLE_TRACE */
 
 /*
@@ -187,25 +187,35 @@ t_get_ipm(void)
 #define VALID_EXCNO(excno)	(0U <= (excno) && (excno) <= 7U)
 
 /*
- *  割込み要求禁止フラグのセット
- *
- *  割込み属性が設定されていない割込み要求ラインに対して割込み要求禁止
- *  フラグをセットしようとした場合には，falseを返す．
+ *  割込み属性の設定のチェック
  */
 Inline bool_t
-disable_int(INTNO intno)
+check_intno_cfg(INTNO intno)
 {
 	return(true);
 }
 
 /*
+ *  割込み要求禁止フラグのセット
+ */
+Inline void
+disable_int(INTNO intno)
+{
+}
+
+/*
  *  割込み要求禁止フラグのクリア
- *
- *  割込み属性が設定されていない割込み要求ラインに対して割込み要求禁止
- *  フラグをクリアしようとした場合には，falseを返す．
+ */
+Inline void
+enable_int(INTNO intno)
+{
+}
+
+/*
+ *  割込み要求がクリアできる状態か？
  */
 Inline bool_t
-enable_int(INTNO intno)
+check_intno_clear(INTNO intno)
 {
 	return(true);
 }
@@ -215,6 +225,23 @@ enable_int(INTNO intno)
  */
 Inline void
 clear_int(INTNO intno)
+{
+}
+
+/*
+ *  割込みが要求できる状態か？
+ */
+Inline bool_t
+check_intno_raise(INTNO intno)
+{
+	return(true);
+}
+
+/*
+ *  割込みの要求
+ */
+Inline void
+raise_int(INTNO intno)
 {
 }
 

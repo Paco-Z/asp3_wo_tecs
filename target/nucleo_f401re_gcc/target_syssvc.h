@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2007,2011-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2007,2011-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -52,6 +52,8 @@
  */
 #include "chip_syssvc.h"
 
+#ifdef TOPPERS_OMIT_TECS
+
 /*
  *  起動メッセージのターゲットシステム名
  */
@@ -83,6 +85,13 @@ extern void	target_fput_log(char c);
 /*
  *  ログタスクが使用するポートID
  */
-#define LOGTASK_PORTID   SIO_PORTID
+#define LOGTASK_PORTID		SIO_PORTID
+
+/*
+ *  低レベル出力で使用するSIOポート
+ */
+#define SIOPID_FPUT		SIO_PORTID
+
+#endif /* TOPPERS_OMIT_TECS */
 
 #endif /* TOPPERS_TARGET_SYSSVC_H */

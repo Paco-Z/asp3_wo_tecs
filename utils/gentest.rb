@@ -4,7 +4,7 @@
 #  TOPPERS Software
 #      Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2007-2017 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,13 +36,15 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: gentest.rb 796 2017-07-19 14:21:08Z ertl-hiro $
+#  $Id: gentest.rb 885 2018-02-11 06:16:15Z ertl-hiro $
 # 
 
 #
 #		テストプログラム生成ツール
 #
 	
+Encoding.default_external = 'utf-8'
+
 #
 #  生成動作を決めるための設定
 #
@@ -74,6 +76,7 @@ $parameterDefinition = {
   "ref_cyc" => { 2 => "T_RCYC" },
   "ref_alm" => { 2 => "T_RALM" },
   "ref_ovr" => { 2 => "T_ROVR" },
+  "ref_mem" => { 2 => "T_RMEM" },
   "get_tid" => { 1 => "ID" },
   "get_did" => { 1 => "ID" },
   "get_lod" => { 2 => "uint_t" },

@@ -108,36 +108,13 @@
 #define OVRTIMER_TIMER_TICK_NS       148
 
 /*
- *  UART base address definitions (used in target_serial.c)
+ *  UART base address and IRQ definitions
  *
  */
-#ifdef TOPPERS_NOSAFEG
-#define     UART0_BASE  ZYNQ_UART1_BASE
-#define     UART1_BASE  ZYNQ_UART0_BASE
-#else
-#error "SafeG is no supported yet!"
-#endif
-
-/*
- *  UART interrupt handler definitions (used in target_serial.cfg)
- *     INHNO: interrupt handler number
- *     INTNO: interrupt number
- *     INTPRI: interrupt priority (lower means higher priority)
- *     INTATR: interrupt attributes (0 means not enabled at the beginning)
- *
- */
-#ifdef TOPPERS_NOSAFEG
-#define    INHNO_SIO0  ZYNQ_UART1_IRQ
-#define    INTNO_SIO0  ZYNQ_UART1_IRQ
-#define    INTPRI_SIO0    -3
-#define    INTATR_SIO0     0U
-#define    INHNO_SIO1  ZYNQ_UART0_IRQ
-#define    INTNO_SIO1  ZYNQ_UART0_IRQ
-#define    INTPRI_SIO1    -2
-#define    INTATR_SIO1     0U
-#else
-#error "SafeG is no supported yet!"
-#endif
+#define SIO0_BASE  ZYNQ_UART0_BASE
+#define SIO0_IRQ   ZYNQ_UART0_IRQ
+#define SIO1_BASE  ZYNQ_UART1_BASE
+#define SIO1_IRQ   ZYNQ_UART1_IRQ
 
 #elif defined(BOARD_ARDUZYNQ)
 
@@ -200,36 +177,13 @@
 #define OVRTIMER_TIMER_TICK_NS       148
 
 /*
- *  UART base address definitions (used in target_serial.c)
+ *  UART base address and IRQ definitions
  *
  */
-#ifdef TOPPERS_NOSAFEG
-#define     UART0_BASE  ZYNQ_UART0_BASE
-#define     UART1_BASE  ZYNQ_UART1_BASE
-#else
-#error "SafeG is no supported yet!"
-#endif
-
-/*
- *  UART interrupt handler definitions (used in target_serial.cfg)
- *     INHNO: interrupt handler number
- *     INTNO: interrupt number
- *     INTPRI: interrupt priority (lower means higher priority)
- *     INTATR: interrupt attributes (0 means not enabled at the beginning)
- *
- */
-#ifdef TOPPERS_NOSAFEG
-#define    INHNO_SIO0  ZYNQ_UART0_IRQ
-#define    INTNO_SIO0  ZYNQ_UART0_IRQ
-#define    INTPRI_SIO0    -3
-#define    INTATR_SIO0     0U
-#define    INHNO_SIO1  ZYNQ_UART1_IRQ
-#define    INTNO_SIO1  ZYNQ_UART1_IRQ
-#define    INTPRI_SIO1    -2
-#define    INTATR_SIO1     0U
-#else
-#error "SafeG is no supported yet!"
-#endif
+#define SIO0_BASE  ZYNQ_UART1_BASE
+#define SIO0_IRQ   ZYNQ_UART1_IRQ
+#define SIO1_BASE  ZYNQ_UART0_BASE
+#define SIO1_IRQ   ZYNQ_UART0_IRQ
 
 #else
 #error Specifi target board.

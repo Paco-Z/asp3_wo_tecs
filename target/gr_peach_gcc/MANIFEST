@@ -1,15 +1,20 @@
 PACKAGE asp3_arch_arm_gcc
 
 E_PACKAGE
+MANIFEST
+Makefile.target
 gdb_ram.ini
 gdb_rom.ini
 gr_peach.h
 gr_peach_ram.ld
 gr_peach_rom.ld
-Makefile.target
-MANIFEST
 renesas_rza1h_swd.cfg
 sf_boot.c
+tPutLogGRPeach.c
+tPutLogGRPeach.cdl
+tSIOPortGRPeach.cdl
+tSIOPortGRPeachMain_inline.h
+target.cdl
 target_cfg1_out.h
 target_check.trb
 target_kernel.cfg
@@ -19,8 +24,6 @@ target_kernel_impl.c
 target_kernel_impl.h
 target_rename.def
 target_rename.h
-target_serial.cfg
-target_serial.h
 target_sil.h
 target_stddef.h
 target_support.S

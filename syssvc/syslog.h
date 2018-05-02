@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +36,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: syslog.h 391 2015-08-01 04:22:59Z ertl-hiro $
+ *  $Id: syslog.h 963 2018-05-01 00:51:38Z ertl-hiro $
  */
 
 /*
@@ -55,16 +54,20 @@ extern "C" {
 #include <t_syslog.h>
 
 /*
- *  ログバッファのサイズ
+ *  ログ情報の重要度のビットマップを作るためのマクロ
  */
-#ifndef TCNT_SYSLOG_BUFFER
-#define TCNT_SYSLOG_BUFFER	32		/* ログバッファのサイズ */
-#endif /* TCNT_SYSLOG_BUFFER */
+#define LOG_MASK(prio)		(1U << (prio))
+#define LOG_UPTO(prio)		((1U << ((prio) + 1)) - 1)
 
 /*
- *  システムログ機能の初期化
+ *  パケット形式の定義
  */
-extern void	syslog_initialize(intptr_t exinf) throw();
+typedef struct t_syslog_rlog {
+	uint_t	count;		/* ログバッファ中のログの数 */
+	uint_t	lost;		/* 失われたログの数 */
+	uint_t	logmask;	/* ログバッファに記録すべき重要度 */
+	uint_t	lowmask;	/* 低レベル出力すべき重要度 */
+} T_SYSLOG_RLOG;
 
 /*
  *  ログ情報の出力
@@ -90,6 +93,14 @@ extern ER	syslog_ref_log(T_SYSLOG_RLOG *pk_rlog) throw();
  *  低レベル出力によるすべてのログ情報の出力
  */
 extern ER	syslog_fls_log(void) throw();
+
+#ifdef TOPPERS_OMIT_TECS
+/*
+ *  システムログ機能の初期化
+ */
+extern void	syslog_initialize(intptr_t exinf) throw();
+
+#endif /* TOPPERS_OMIT_TECS */
 
 #ifdef __cplusplus
 }

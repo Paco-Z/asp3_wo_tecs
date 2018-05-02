@@ -1,1 +1,1 @@
-INCLUDE "core"
+INCLUDE "arm_m_gcc/common/core"

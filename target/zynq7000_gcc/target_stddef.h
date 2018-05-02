@@ -72,6 +72,7 @@
  *  アサーションの失敗時の実行中断処理
  */
 #ifndef TOPPERS_MACRO_ONLY
+#ifndef TECSGEN
 
 Inline void
 TOPPERS_assert_abort(void)
@@ -79,5 +80,6 @@ TOPPERS_assert_abort(void)
 	while (1) ;
 }
 
+#endif /* TECSGEN */
 #endif /* TOPPERS_MACRO_ONLY */
 #endif /* TOPPERS_TARGET_STDDEF_H */

@@ -5,7 +5,7 @@
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,7 +37,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id: kernel.trb 716 2016-03-31 06:16:23Z ertl-hiro $
+#   $Id: kernel.trb 955 2018-04-28 12:21:11Z ertl-hiro $
 # 
 
 #
@@ -106,15 +106,17 @@ class KernelObject
     @obj_s = obj_s
     @OBJ_S = obj_s.tr("a-z", "A-Z")
     @objid = (obj + "id").to_sym
+    @noobj = ("no" + obj).to_sym
     @api = "CRE_#{@OBJ}".to_sym
+    @aidapi = "AID_#{@OBJ}".to_sym
     @inibList = { "#{@OBJ_S}INIB" => "a#{@obj_s}inib_table"}
   end
 
   def generate()
     # AID_@OBJの処理
     numAutoObjid = 0
-    $cfgData["AID_#{@OBJ}".to_sym].each do |key, params|
-      numAutoObjid += params["no#{@obj}".to_sym]
+    $cfgData[@aidapi].each do |key, params|
+      numAutoObjid += params[@noobj]
     end
     numObjid = $cfgData[@api].size + numAutoObjid
 
@@ -294,7 +296,7 @@ def generateNotifyHandler(key, params, objid)
     else
       error_illegal_id("E_PAR", params, :nfymode, objid)
     end
-			
+
     if nfymode2 != 0
       # エラー通知処理の処理
       $kernelCfgC.add("\tif (ercd != E_OK) {")
@@ -410,52 +412,52 @@ STK_T *const _kernel_istkpt = TOPPERS_ISTKPT(#{istk}, #{istksz});
 EOS
 
 #
-#  カーネルが割り付けるメモリ領域
+#  カーネルメモリプール領域
 #
-$kernelCfgC.comment_header("Memory Area Allocated by Kernel")
+$kernelCfgC.comment_header("Kernel Memory Pool Area")
 
-if $cfgData[:DEF_KMM].size == 0
-  # DEF_KMMがない場合のデフォルト値の設定
-  kmmsz = "0"
-  kmm = "NULL"
+if $cfgData[:DEF_MPK].size == 0
+  # DEF_MPKがない場合のデフォルト値の設定
+  mpksz = "0"
+  mpk = "NULL"
 else
-  # 静的API「DEF_KMM」が複数ある（E_OBJ）
-  if ($cfgData[:DEF_KMM].size > 1)
-    error("E_OBJ: too many DEF_KMM")
+  # 静的API「DEF_MPK」が複数ある（E_OBJ）［NGKI5073］
+  if ($cfgData[:DEF_MPK].size > 1)
+    error("E_OBJ: too many DEF_MPK")
   end
 
-  # DEF_KMMがある場合の処理
-  params = $cfgData[:DEF_KMM][1]
+  # DEF_MPKがある場合の処理
+  params = $cfgData[:DEF_MPK][1]
 
   # パラメータが省略された時のデフォルト値の設定
-  params[:kmm] ||= "NULL"
+  params[:mpk] ||= "NULL"
 
-  # kmmszが0の場合（E_PAR）
-  if params[:kmmsz] == 0
-    error_wrong("E_PAR", params, :kmmsz, "zero")
+  # mpkszが0の場合（E_PAR）［NGKI5071］
+  if params[:mpksz] == 0
+    error_wrong("E_PAR", params, :mpksz, "zero")
   end
 
-  if params[:kmm] == "NULL"
-    # カーネルが割り付けるメモリ領域の自動割付け
-    $kernelCfgC.add("static MB_T _kernel_memory" \
-					"[TOPPERS_COUNT_SZ(#{params[:kmmsz]}, sizeof(MB_T))];")
-    kmmsz = "TOPPERS_ROUND_SZ(#{params[:kmmsz]}, sizeof(MB_T))"
-    kmm = "_kernel_memory"
+  if params[:mpk] == "NULL"
+    # カーネルメモリプール領域の自動割付け
+    $kernelCfgC.add("static MB_T _kernel_memory_pool" \
+					"[COUNT_MB_T(#{params[:mpksz]})];")
+    mpksz = "ROUND_MB_T(#{params[:mpksz]})"
+    mpk = "_kernel_memory_pool"
   else
-    # kmmszがカーネルが割り付けるメモリ領域のサイズとして正しくない場合
-    # （E_PAR）
-    if (params[:kmmsz] & ($CHECK_MB_ALIGN - 1)) != 0
-      error_wrong("E_PAR", params, :kmmsz, "not aligned")
+    # mpkszがカーネルメモリプール領域のサイズとして正しくない場合（E_PAR）
+    # ［NGKI5083］
+    if (params[:mpksz] & ($CHECK_MB_ALIGN - 1)) != 0
+      error_wrong("E_PAR", params, :mpksz, "not aligned")
     end
 
-    kmmsz = "(#{params[:kmmsz]})"
-    kmm = "(void *)(#{params[:kmm]})"
+    mpksz = "(#{params[:mpksz]})"
+    mpk = "(void *)(#{params[:mpk]})"
   end
 end
 
 $kernelCfgC.add(<<EOS)
-const size_t _kernel_kmmsz = #{kmmsz};
-MB_T *const _kernel_kmm = #{kmm};
+const size_t _kernel_mpksz = #{mpksz};
+MB_T *const _kernel_mpk = #{mpk};
 EOS
 
 #
