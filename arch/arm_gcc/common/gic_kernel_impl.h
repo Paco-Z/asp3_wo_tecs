@@ -363,6 +363,7 @@ extern void gicd_terminate(void);
  *  割込み番号の範囲の判定
  */
 #define VALID_INTNO(intno)	(TMIN_INTNO <= (intno) && (intno) <= TMAX_INTNO)
+#define VALID_INTNO_DISINT(intno)	(GIC_INTNO_PPI0 <= (intno) && (intno) <= TMAX_INTNO)
 
 /*
  *  割込み要求ラインのための標準的な初期化情報を生成する
