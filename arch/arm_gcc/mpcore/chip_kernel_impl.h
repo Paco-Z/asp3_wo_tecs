@@ -69,6 +69,10 @@
  */
 #include "gic_kernel_impl.h"
 
+#ifdef TOPPERS_CORTEX_A9
+#define VALID_INTNO_DISINT(intno)	(GIC_INTNO_PPI0 <= (intno) && (intno) <= TMAX_INTNO)
+#endif /* TOPPERS_CORTEX_A9 */
+
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
