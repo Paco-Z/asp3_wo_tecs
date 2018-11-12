@@ -67,7 +67,8 @@ require "shell"
 #  -l <srclang>			プログラミング言語（現時点ではcとc++のみサポート）
 #  -m <tempmakefile>	Makefileのテンプレートのファイル名の指定（デフォル
 #						トはsampleディレクトリのMakefile）
-#  -d <depdir>			依存関係ファイルのディレクトリ名（デフォルトはdeps）
+#	-d <objdir>			中間オブジェクトファイルと依存関係ファイルを置く
+#						ディレクトリ名（デフォルトはobjs）
 #  -w					TECSを使用しない
 #  -W <tecsdir>			TECS関係ファイルのディレクトリ名（デフォルトはソー
 #						スファイルのディレクトリの下のtecsgen）
@@ -111,7 +112,7 @@ $syssvcobjs = []
 $kernel_lib = ""
 $kernel_funcobjs = ""
 $srclang = "c"
-$depdir = "deps"
+$objdir = "objs"
 $omit_tecs = ""
 $enable_trace = ""
 $devtooldir = ""
@@ -163,8 +164,8 @@ OptionParser.new(nil, 22) do |opt|
   opt.on("-m tempmakefile", "template file of Makefile") do |val|
     $tempmakefile = val
   end
-  opt.on("-d depdir",		"dependency relation file directory") do |val|
-    $depdir = val
+  opt.on("-d objdir",		"relocatable object file directory") do |val|
+    $objdir = val
   end
   opt.on("-w",				"TECS is not used at all") do |val|
     $omit_tecs = true
@@ -275,7 +276,7 @@ $vartable["KERNEL_FUNCOBJS"] = $kernel_funcobjs
 $vartable["SRCDIR"] = $srcdir
 $vartable["SRCABSDIR"] = $srcabsdir
 $vartable["SRCLANG"] = $srclang
-$vartable["DEPDIR"] = $depdir
+$vartable["OBJDIR"] = $objdir
 $vartable["OMIT_TECS"] = $omit_tecs
 $vartable["TECSDIR"] = $tecsdir
 $vartable["ENABLE_TRACE"] = $enable_trace
@@ -330,6 +331,6 @@ convert($tempmakefile, "Makefile")
 #
 #  依存関係ファイルのディレクトリの作成
 #
-if !File.directory?($depdir)
-  Dir.mkdir($depdir)
+if !File.directory?($objdir)
+  Dir.mkdir($objdir)
 end

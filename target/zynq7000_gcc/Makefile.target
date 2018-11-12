@@ -65,3 +65,6 @@ LDSCRIPT = $(TARGETDIR)/zynq7000.ld
 #  チップ依存部
 #
 include $(SRCDIR)/arch/arm_gcc/mpcore/Makefile.chip
+
+db:$(OBJFILE)
+	arm-gdb.exe -x $(TARGETDIR)/gdb.ini $(OBJFILE)
