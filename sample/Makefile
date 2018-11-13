@@ -87,7 +87,7 @@ KERNEL_FUNCOBJS = @(KERNEL_FUNCOBJS)
 #
 #  TECSを外すかどうかの定義
 #
-OMIT_TECS = @(OMIT_TECS)
+OMIT_TECS = true
 
 #
 #  TECS関係ファイルのディレクトリの定義
