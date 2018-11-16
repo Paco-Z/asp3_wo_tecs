@@ -62,13 +62,6 @@
 #define TOPPERS_TARGET_SUPPORT_PRB_INT		/* prb_int */
 
 /*
- *  高分解能タイマのタイマ周期
- *
- *  タイマ周期が2^32の場合には，このマクロを定義しない．
- */
-#undef TCYC_HRTCNT
-
-/*
  *  高分解能タイマのカウント値の進み幅
  */
 #define TSTEP_HRTCNT	1U
