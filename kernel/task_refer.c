@@ -127,7 +127,7 @@ ref_tsk(ID tskid, T_RTSK *pk_rtsk)
 			/*
 	 		 *  待ち要因と待ち対象のオブジェクトのIDの取出し
 			 */
-			switch (tstat) {
+			switch (tstat & TS_WAITING_MASK) {
 			case TS_WAITING_SLP:
 				pk_rtsk->tskwait = TTW_SLP;
 				break;
