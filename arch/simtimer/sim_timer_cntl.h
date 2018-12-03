@@ -34,72 +34,35 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sim_timer.h 1104 2018-12-02 09:20:00Z ertl-hiro $
+ *  $Id: sim_timer_cntl.h 1112 2018-12-03 09:27:34Z ertl-hiro $
  */
 
 /*
- *		タイマドライバシミュレータ
+ *		タイマドライバシミュレータ制御
  */
 
-#ifndef TOPPERS_SIM_TIMER_H
-#define TOPPERS_SIM_TIMER_H
-
-#include "kernel/kernel_impl.h"
-
-#ifndef TOPPERS_MACRO_ONLY
-
-/*
- *  タイマの起動処理
- */
-extern void	target_timer_initialize(intptr_t exinf);
-
-/*
- *  タイマの停止処理
- */
-extern void target_timer_terminate(intptr_t exinf);
-
-/*
- *  高分解能タイマの現在のカウント値の読出し
- */
-extern HRTCNT target_hrt_get_current(void);
-
-/*
- *  高分解能タイマへの割込みタイミングの設定
- */
-extern void target_hrt_set_event(HRTCNT hrtcnt);
-
-/*
- *  高分解能タイマ割込みの要求
- */
-extern void target_hrt_raise_event(void);
-
-/*
- *  シミュレートされた高分解能タイマ割込みハンドラ
- */
-extern void target_hrt_handler(void);
-
-/*
- *  カーネルのアイドル処理
- */
-extern void target_custom_idle(void);
+#ifndef TOPPERS_SIM_TIMER_CNTL_H
+#define TOPPERS_SIM_TIMER_CNTL_H
 
 /*
  *  シミュレーション時刻を進める（テストプログラム用）
  */
-extern void simtim_advance(uint_t time);
+extern void	simtim_advance(uint_t time);
 
 /*
  *  シミュレーション時刻を強制的に進める（テストプログラム用）
+ *
+ *  シミュレーション時刻を進めるが，高分解能タイマ割込みは発生させない．
+ *  サービスコール中でタイマが進んだケースをテストするために用いる．
  */
-extern void simtim_add(uint_t time);
+extern void	simtim_add(uint_t time);
 
 /*
  *  テストのためのフックルーチン
  */
 #ifdef HOOK_HRT_EVENT
-extern void hook_hrt_set_event(HRTCNT hrtcnt);
-extern void hook_hrt_raise_event(void);
+#define hook_hrt_set_event		_kernel_hook_hrt_set_event
+#define hook_hrt_raise_event	_kernel_hook_hrt_raise_event
 #endif /* HOOK_HRT_EVENT */
 
-#endif /* TOPPERS_MACRO_ONLY */
-#endif /* TOPPERS_SIM_TIMER_H */
+#endif /* TOPPERS_SIM_TIMER_CNTL_H */

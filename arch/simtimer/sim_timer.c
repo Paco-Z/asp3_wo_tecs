@@ -34,7 +34,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id: sim_timer.c 1101 2018-11-30 00:07:32Z ertl-hiro $
+ *  $Id: sim_timer.c 1104 2018-12-02 09:20:00Z ertl-hiro $
  */
 
 /*
@@ -67,13 +67,13 @@ typedef uint64_t	SIMTIM;
 /*
  *  現在のシミュレーション時刻
  */
-static SIMTIM current_simtim;
+static SIMTIM	current_simtim;
 
 /*
  *  高分解能タイマ割込みの発生時刻
  */
-static bool_t hrt_event_flag;		/* 発生時刻が設定されているか？ */
-static SIMTIM hrt_event_simtim;		/* 発生時刻 */
+static bool_t	hrt_event_flag;		/* 発生時刻が設定されているか？ */
+static SIMTIM	hrt_event_simtim;	/* 発生時刻 */
 
 Inline SIMTIM
 truncate_simtim(SIMTIM simtim)
@@ -85,25 +85,6 @@ Inline SIMTIM
 roundup_simtim(SIMTIM simtim)
 {
 	return((simtim + TSTEP_HRTCNT - 1) / TSTEP_HRTCNT * TSTEP_HRTCNT);
-}
-
-/*
- *  高分解能タイマの起動処理
- */
-void
-target_hrt_initialize(intptr_t exinf)
-{
-	current_simtim = SIMTIM_INIT_CURRENT;
-	hrt_event_flag = false;
-}
-
-/*
- *  高分解能タイマの停止処理
- */
-void
-target_hrt_terminate(intptr_t exinf)
-{
-	hrt_event_flag = false;
 }
 
 /*
@@ -129,14 +110,8 @@ target_hrt_set_event(HRTCNT hrtcnt)
 	hook_hrt_set_event(hrtcnt);
 #endif /* HOOK_HRT_EVENT */
 
-	if (hrtcnt == 0) {
-		hrt_event_flag = false;
-		target_raise_hrt_int();
-	}
-	else {
-		hrt_event_flag = true;
-		hrt_event_simtim = roundup_simtim(current_simtim + hrtcnt);
-	}
+	hrt_event_flag = true;
+	hrt_event_simtim = roundup_simtim(current_simtim + hrtcnt);
 }
 
 /*
@@ -163,6 +138,25 @@ target_hrt_handler(void)
 }
 
 /*
+ *  タイマの起動処理
+ */
+void
+target_timer_initialize(intptr_t exinf)
+{
+	current_simtim = SIMTIM_INIT_CURRENT;
+	hrt_event_flag = false;
+}
+
+/*
+ *  タイマの停止処理
+ */
+void
+target_timer_terminate(intptr_t exinf)
+{
+	hrt_event_flag = false;
+}
+
+/*
  *  カーネルのアイドル処理
  */
 void
@@ -181,26 +175,22 @@ target_custom_idle(void)
  *  シミュレーション時刻を進める（テストプログラム用）
  */
 void
-simtim_advance(HRTCNT hrtcnt)
+simtim_advance(uint_t time)
 {
 	bool_t	locked;
-
-#ifdef TCYC_HRTCNT
-	assert(hrtcnt < TCYC_HRTCNT);
-#endif /* TCYC_HRTCNT */
 
 	locked = sns_loc();
 	if (!locked) {
 		loc_cpu();
 	}
 
-	while (hrt_event_flag && hrt_event_simtim <= current_simtim + hrtcnt) {
+	while (hrt_event_flag && hrt_event_simtim <= current_simtim + time) {
 		/*
-		 *  時刻をhrtcnt進めると，高分解能タイマ割込みの発生時刻を過ぎ
+		 *  時刻をtime進めると，高分解能タイマ割込みの発生時刻を過ぎ
 		 *  る場合
 		 */
 		if (current_simtim < hrt_event_simtim) {
-			hrtcnt -= (hrt_event_simtim - current_simtim);
+			time -= (hrt_event_simtim - current_simtim);
 			current_simtim = hrt_event_simtim;
 		}
 		hrt_event_flag = false;
@@ -215,7 +205,7 @@ simtim_advance(HRTCNT hrtcnt)
 			loc_cpu();
 		}
 	}	 
-	current_simtim += hrtcnt;
+	current_simtim += time;
 
 	if (!locked) {
 		unl_cpu();
@@ -223,23 +213,19 @@ simtim_advance(HRTCNT hrtcnt)
 }
 
 /*
- *  シミュレーション時刻を進める（テストプログラム用）
+ *  シミュレーション時刻を強制的に進める（テストプログラム用）
  */
 void
-simtim_add(HRTCNT hrtcnt)
+simtim_add(uint_t time)
 {
 	bool_t	locked;
-
-#ifdef TCYC_HRTCNT
-	assert(hrtcnt < TCYC_HRTCNT);
-#endif /* TCYC_HRTCNT */
 
 	locked = sns_loc();
 	if (!locked) {
 		loc_cpu();
 	}
 
-	current_simtim += hrtcnt;
+	current_simtim += time;
 
 	if (!locked) {
 		unl_cpu();
