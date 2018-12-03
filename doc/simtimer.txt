@@ -3,7 +3,7 @@
 		タイマドライバのシミュレータを用いたカーネルのテスト手法
 
 		作成者: 高田広章（名古屋大学）
-		最終更新: 2018年11月30日
+		最終更新: 2018年12月3日
 
 ○メモの位置付け
 
@@ -104,7 +104,7 @@
 テストプログラムから，simtim_add関数を呼び出すことで，現在時刻を強制的
 に進めるが，高分解能タイマ割込みを発生させないことができる。この機能は，
 サービスコール中の割込み禁止区間でタイマが進んだケースをテストするため
-に使用する．
+に用意している。
 
 ●テストのためのフックルーチン
 
@@ -115,14 +115,15 @@ hook_hrt_set_event関数とhook_hrt_raise_event関数）を呼び出す機能を
 ている。
 
 この機能を使用する場合には，コンパイルオプションに-DHOOK_HRT_EVENTを付
-けて，sim_timer.cをコンパイルする。
+ける。
 
 ○タイマドライバシミュレータの使い方
 
 (1) タイマドライバシミュレータを組み込んだターゲット依存部の作成
 
 既存のターゲット依存部をベースに，タイマドライバシミュレータを組み込む
-には，以下の変更が必要である。
+には，以下の変更が必要である（具体的な内容については，タイマドライバシ
+ミュレータを組み込んだ既存のターゲット依存部を参照すること）。
 
 ・Makefile.targetで，INCLUDESとKERNEL_DIRSに，タイマドライバシミュレー
 　タのソースディレクトリ（$(SRCDIR)/arch/simtimer）を追加する。
@@ -130,8 +131,11 @@ hook_hrt_set_event関数とhook_hrt_raise_event関数）を呼び出す機能を
 ・Makefile.targetで，KERNEL_COBJSに追加されているタイマドライバのオブ
 　ジェクトファイル（target_timer.oなど）を，sim_timer.oに置き換える。
 
-・target_kernel.h中のTCYC_HRTCNTとTSTEP_HRTCNTの定義を削除し，
-　sim_timer_kernel.hのインクルードに置き換える。
+・target.cdlに，タイマドライバシミュレータ制御の組上げ記述を追加する
+　（非TECS版システムサービスを用いる場合には不要）。
+
+・target_kernel.h中のTCYC_HRTCNTとTSTEP_HRTCNTの定義を，タイマドライバ
+　シミュレータ用の記述に置き換える（HRTCNT_BOUNDも定義する）。
 
 ・target_kernel_impl.hで，TOPPERS_CUSTOM_IDLEをマクロ定義し，カーネル
 　のアイドル処理でtarget_custom_idleを呼び出す。
@@ -145,13 +149,37 @@ hook_hrt_set_event関数とhook_hrt_raise_event関数）を呼び出す機能を
 	- target_raise_hrt_intの定義
 	- sim_timer.hのインクルード
 
-その他に，target_rename.defを変更する必要がある。
+・target_rename.defにset_timer.c中のシンボルを追加し，genrenameを実行
+　する。
+
+・サンプルプログラムを実行する場合には，target_test.h中のLOOP_REFの値
+　を見直す（1/10〜1/100程度の値にすると良いだろう）。
 
 (2) テストプログラムの作成
 
-タイマドライバシミュレータの持つ現在時刻を進めるためにsimtim_advance関
-数を呼び出さなければならないことを除いては，通常のカーネル上と同様にテ
-ストプログラムを作成することができる。
+タイマドライバシミュレータの持つ現在時刻を進めるために，
+arch/simtimer/sim_timer_cntl.hをインクルードし，simtim_advance関数を呼
+び出さなければならないことを除いては，通常のカーネル上と同様にテストプ
+ログラムを作成することができる。テストプログラムのコンパイル時に
+は，-DHRT_CONFIG1（または，-DHRT_CONFIG2）を付ける必要がある。
+
+例えば，サンプルプログラムsample1は，arch/simtimer/sim_timer_cntl.hを
+インクルードし，comsume_time関数に以下のように1行追加するだけで，タイ
+マドライバシミュレータを組み込んだターゲット依存部で実行することができ
+る。
+
+	--------------------------------------------------------------
+	static void
+	consume_time(ulong_t ctime)
+	{
+		ulong_t		i;
+
+		for (i = 0; i < ctime; i++) {
+			volatile_var = i;
+			simtim_advance(1U);
+		}
+	}
+	--------------------------------------------------------------
 
 ○タイマドライバシミュレータのコードの概要
 
