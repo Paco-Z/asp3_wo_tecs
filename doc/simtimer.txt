@@ -1,0 +1,270 @@
+													TOPPERS Confidential
+		TOPPERSプロジェクト ディスカッションメモ
+		タイマドライバのシミュレータを用いたカーネルのテスト手法
+
+		作成者: 高田広章（名古屋大学）
+		最終更新: 2018年11月30日
+
+○メモの位置付け
+
+このドキュメントは，タイマドライバのシミュレータを用いたカーネルのテス
+ト手法に関して検討するものである。
+
+○検討の位置付け
+
+高分解能タイマを用いたTOPPERS/ASP3カーネルのシステム時刻管理機能のテス
+ト方法に関しては，過去に「高分解能タイマを用いたシステム時刻管理機能の
+テスト方法」において検討を行い，その検討結果に基づいたテストプログラム
+を用いてきた。
+
+しかし，この手法は，テストプログラムを開発する際に，高分解能タイマの振
+舞いを詳細に記述する必要があり，テストプログラムの保守が難しいという課
+題がある。そこで，このドキュメントでは，簡易な高分解能タイマの振舞い記
+述で，テストプログラムを実行する手法を検討する。
+
+なお，現時点では，高分解能タイマのみをシミュレートしているが，将来的に
+は，タイムウィンドウタイマやオーバランタイマも統一的にシミュレートする
+ことを考える。
+
+○テストのアプローチ
+
+テストプログラムを簡易な設定で実行できるように，時間の進み方をテストプ
+ログラムから与えられると，カーネルからの指示に従ってタイマ割込み処理を
+呼び出すタイマドライバシミュレータを用意するアプローチをとる。
+
+タイマドライバシミュレータは，シミュレートされた現在時刻（以下，単に現
+在時刻という）と，高分解能タイマのシミュレートされた割込み発生時刻（以
+下，単に割込み発生時刻という）を管理し，必要な場合には高分解能タイマ割
+込み処理を呼び出す。
+
+現在時刻は，テストプログラムからの指示（simtim_advance関数の呼出し）に
+よって進められる。その結果，現在時刻が割込み発生時刻と同じかそれよりも
+進んだ値となった場合，シミュレートされた高分解能タイマ割込みを要求する。
+シミュレートされた高分解能タイマ割込みは，高分解能タイマ割込みの処理ルー
+チン（signal_time関数）を呼び出す。
+
+また，カーネルのアイドル処理が実行された場合には，現在時刻を進める指示
+を出すタスクがなくなったことを意味するため，現在時刻を割込み発生時刻ま
+で進め，シミュレートされた高分解能タイマ割込みを要求する。この前提とし
+て，高分解能タイマ以外に，考慮すべき割込みの発生源がないことを想定して
+いる（使用上の制限事項）。
+
+なお，simtim_advance関数は，CPUロック解除状態で呼び出されることを想定
+する。CPUロック状態で呼び出された場合には，引数で指定した時間がCPUロッ
+ク状態のまま経過する扱いとなる。
+
+○タイマドライバシミュレータの設定
+
+●高分解能タイマドライバの性質
+
+高分解能タイマドライバの性質を決定する3つの定数の組として，以下を用意
+している。どれを用いるかは，コンパイルオプションに-DHRT_CONFIGnを付け
+ることで決定する。
+
+(1) 1μ秒毎にカウントアップする32ビットタイマ
+
+#ifdef HRT_CONFIG1
+#undef TCYC_HRTCNT		/* 2^32 */
+#define TSTEP_HRTCNT	1U
+#define HRTCNT_BOUND	4000000002U
+#endif /* HRT_CONFIG1 */
+
+※ HRTCNT_BOUNDを400000002U（＝TMAX_RELTIM＋TSTEP_HRTCNT＋1）以上にして
+   おくと（最後の＋1は，ドリフト調整機能で端数を切り上げる分），通常の
+   状況で高分解能タイマに設定する相対カウント値がHRTCNT_BOUNDを超えるこ
+   とはなく，ムダなタイマ割込みが減らせる。
+
+(2) 10μ毎にカウントアップする16ビットタイマ
+
+#ifdef HRT_CONFIG2
+#define TCYC_HRTCNT		(0x10000U * 10U)
+#define TSTEP_HRTCNT	10U
+#define HRTCNT_BOUND	(0x10000U * 9U)
+#endif /* HRT_CONFIG2 */
+
+●タイマドライバシミュレータのパラメータ
+
+実際のシステムと近い振舞いとするために，タイマドライバシミュレータには
+次の2つのパラメータを持たせている。
+
+(1) SIMTIM_INIT_CURRENT		シミュレート時間の初期値
+
+シミュレートされた現在時刻の初期値。カーネルが起動して最初に読む高分解
+能タイマの値は，この値となる。そのため，高分解能タイマの値とイベント時
+刻は，この値の分ずれる。デフォルトでは，10（μ秒）としている。
+
+(2) SIMTIM_OVERHEAD_HRTINT	高分解能タイマ割込みの受付オーバヘッド
+
+高分解能タイマ割込みの受付にかかる処理時間。高分解能タイマ割込みの先頭
+で，この値を，シミュレートされた現在時刻に加えている。デフォルトでは，
+10（μ秒）としている。
+
+●シミュレーション時刻を強制的に進める機能
+
+テストプログラムから，simtim_add関数を呼び出すことで，現在時刻を強制的
+に進めるが，高分解能タイマ割込みを発生させないことができる。この機能は，
+サービスコール中の割込み禁止区間でタイマが進んだケースをテストするため
+
+●テストのためのフックルーチン
+
+テストプログラムにおいて，カーネル内部の振舞いまで確認することを目的に，
+target_hrt_set_event関数とhook_hrt_raise_event関数が呼び出された場合に，
+テストプログラム側で用意するフックルーチン（それぞれ，
+hook_hrt_set_event関数とhook_hrt_raise_event関数）を呼び出す機能を持っ
+ている。
+
+この機能を使用する場合には，コンパイルオプションに-DHOOK_HRT_EVENTを付
+けて，sim_timer.cをコンパイルする。
+
+○タイマドライバシミュレータの使い方
+
+(1) タイマドライバシミュレータを組み込んだターゲット依存部の作成
+
+既存のターゲット依存部をベースに，タイマドライバシミュレータを組み込む
+には，以下の変更が必要である。
+
+・Makefile.targetで，INCLUDESとKERNEL_DIRSに，タイマドライバシミュレー
+　タのソースディレクトリ（$(SRCDIR)/arch/simtimer）を追加する。
+
+・Makefile.targetで，KERNEL_COBJSに追加されているタイマドライバのオブ
+　ジェクトファイル（target_timer.oなど）を，sim_timer.oに置き換える。
+
+・target_kernel.h中のTCYC_HRTCNTとTSTEP_HRTCNTの定義を削除し，
+　sim_timer_kernel.hのインクルードに置き換える。
+
+・target_kernel_impl.hで，TOPPERS_CUSTOM_IDLEをマクロ定義し，カーネル
+　のアイドル処理でtarget_custom_idleを呼び出す。
+
+・target_timer.cfgを，target_timer.hとsim_timer.cfgをインクルードする
+　のみの内容とする。
+
+・target_timer.hを，以下の内容とする。
+	- kernel/kernel_impl.hとターゲット依存の定義ファイルのインクルード
+	- タイマ割込みハンドラ登録のための定数の定義
+	- target_raise_hrt_intの定義
+	- sim_timer.hのインクルード
+
+その他に，target_rename.defを変更する必要がある。
+
+(2) テストプログラムの作成
+
+タイマドライバシミュレータの持つ現在時刻を進めるためにsimtim_advance関
+数を呼び出さなければならないことを除いては，通常のカーネル上と同様にテ
+ストプログラムを作成することができる。
+
+○タイマドライバシミュレータのコードの概要
+
+----------------------------------------------------------------------
+#define SIMTIM_INIT_CURRENT		10
+#define SIMTIM_OVERHEAD_HRTINT	10
+
+typedef uint64_t	SIMTIM;
+static SIMTIM current_simtim;		/* 現在のシミュレーション時刻 */
+static bool_t hrt_event_flag;		/* 発生時刻が設定されているか？ */
+static SIMTIM hrt_event_simtim;		/* 発生時刻 */
+
+void
+target_hrt_initialize(intptr_t exinf)
+{
+	current_simtim = SIMTIM_INIT_CURRENT;
+	hrt_event_flag = false;
+}
+
+void
+target_hrt_terminate(intptr_t exinf)
+{
+	hrt_event_flag = false;
+}
+
+HRTCNT
+target_hrt_get_current(void)
+{
+#ifdef TCYC_HRTCNT
+	return((HRTCNT)(current_simtim % TCYC_HRTCNT));
+#else /* TCYC_HRTCNT */
+	return((HRTCNT) current_simtim);
+#endif /* TCYC_HRTCNT */
+}
+
+void
+target_hrt_set_event(HRTCNT hrtcnt)
+{
+	if (hrtcnt == 0) {
+		hrt_event_flag = false;
+		シミュレートされた高分解能タイマ割込みを要求する
+	}
+	else {
+		hrt_event_flag = true;
+		hrt_event_simtim = current_simtim + hrtcnt;
+	}
+}
+
+void
+target_hrt_raise_event(void)
+{
+	シミュレートされた高分解能タイマ割込みを要求する
+}
+
+void
+target_hrt_handler(void)
+{
+	current_simtim += SIMTIM_OVERHEAD_HRTINT;
+	signal_time();
+}
+
+void
+target_custom_idle(void)
+{
+	lock_cpu();
+	if (hrt_event_flag) {
+		current_simtim = hrt_event_simtim;
+		hrt_event_flag = false;
+		シミュレートされた高分解能タイマ割込みを要求する
+	}
+	unlock_cpu();
+}
+
+void
+simtim_advance(HRTCNT hrtcnt)
+{
+	bool_t	locked;
+
+#ifdef TCYC_HRTCNT
+	assert(hrtcnt < TCYC_HRTCNT);
+#endif /* TCYC_HRTCNT */
+
+	locked = sns_loc();
+	if (!locked) {
+		loc_cpu();
+	}
+
+	while (hrt_event_flag && hrt_event_simtim <= current_simtim + hrtcnt) {
+		/*
+		 *  時刻をhrtcnt進めると，高分解能タイマ割込みの発生時刻を過ぎ
+		 *  る場合
+		 */
+		if (current_simtim < hrt_event_simtim) {
+			hrtcnt -= (hrt_event_simtim - current_simtim);
+			current_simtim = hrt_event_simtim;
+		}
+		hrt_event_flag = false;
+		シミュレートされた高分解能タイマ割込みを要求する
+
+		/*
+		 *  ここで割込みを受け付ける．
+		 */
+		if (!locked) {
+			unl_cpu();
+			delay_for_interrupt();
+			loc_cpu();
+		}
+	}	 
+	current_simtim += hrtcnt;
+
+	if (!locked) {
+		unl_cpu();
+	}
+}
+----------------------------------------------------------------------
+
+以上
