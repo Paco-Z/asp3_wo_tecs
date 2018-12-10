@@ -124,7 +124,7 @@ $cfgData[:CFG_INT].each do |key, params|
   #	intpriがCFG_INTに対する割込み優先度として正しくない場合（E_PAR）
   #	［NGKI2973］
   if $INTPRI_CFGINT_VALID.index(params[:intpri]).nil?
-    error_illegal_sym("E_OBJ", params, :intpri, :intno)
+    error_illegal_sym("E_PAR", params, :intpri, :intno)
   end
 
   # カーネル管理外に固定されているintnoに対して，intpriにTMIN_INTPRIよ
